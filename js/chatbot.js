@@ -331,6 +331,8 @@ You provide warm, authentic, culturally respectful, concise, and helpful answers
   return data.choices[0].message.content;
 }
 
+window.fetchGroqCompletion = fetchGroqCompletion;
+
 // LOCAL FALLBACK KNOWLEDGE ENGINE
 function getLocalKnowledgeAnswer(query) {
   const q = query.toLowerCase();

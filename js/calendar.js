@@ -84,7 +84,8 @@ function renderCalendar() {
   for (let d = 1; d <= daysInMonth; d++) {
     const dayEl = document.createElement('div');
     dayEl.className = 'cal-day';
-    dayEl.setAttribute('role', 'gridcell');
+    dayEl.setAttribute('role', 'button');
+    dayEl.setAttribute('tabindex', '0');
 
     const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     if (isToday) dayEl.classList.add('today');
@@ -94,16 +95,23 @@ function renderCalendar() {
     if (festivals.length > 0) {
       dayEl.classList.add('has-festival');
       dayEl.style.setProperty('--festival-color', festivals[0].color);
-      dayEl.querySelector ? null : null;
       const dot = document.createElement('div');
       dot.style.cssText = `position:absolute;bottom:4px;width:5px;height:5px;border-radius:50%;background:${festivals[0].color}`;
       dayEl.appendChild(dot);
       dayEl.setAttribute('aria-label', `${d} ${MONTH_NAMES[month]} — ${festivals.map(f => f.name).join(', ')}`);
 
-      dayEl.addEventListener('click', () => {
+      const triggerFestival = () => {
         document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
         dayEl.classList.add('selected');
         showFestivalDetail(festivals[0]);
+      };
+
+      dayEl.addEventListener('click', triggerFestival);
+      dayEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerFestival();
+        }
       });
     } else {
       dayEl.setAttribute('aria-label', `${d} ${MONTH_NAMES[month]}`);
@@ -124,7 +132,9 @@ function renderFestivalList() {
   FULL_FESTIVALS.forEach((f, i) => {
     const item = document.createElement('div');
     item.className = 'festival-item';
-    item.setAttribute('role', 'listitem');
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('aria-label', `View details for ${f.name}`);
     item.innerHTML = `
       <div class="festival-dot" style="background:${f.color}"></div>
       <div>
@@ -132,13 +142,19 @@ function renderFestivalList() {
         <div class="festival-date">${MONTH_NAMES[f.month - 1]} ${f.day} · ${f.type}</div>
       </div>
     `;
-    item.addEventListener('click', () => {
+    const triggerItem = () => {
       document.querySelectorAll('.festival-item').forEach(el => el.classList.remove('active'));
       item.classList.add('active');
       showFestivalDetail(f);
-      // Navigate calendar to the festival month
       currentDate = new Date(currentDate.getFullYear(), f.month - 1, 1);
       renderCalendar();
+    };
+    item.addEventListener('click', triggerItem);
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        triggerItem();
+      }
     });
     list.appendChild(item);
   });
