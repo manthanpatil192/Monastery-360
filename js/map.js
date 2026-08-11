@@ -113,7 +113,8 @@ function renderSidebarList() {
     const item = document.createElement('div');
     item.className = 'map-list-item';
     item.dataset.id = m.id;
-    item.setAttribute('role', 'listitem');
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
     item.setAttribute('aria-label', `Focus on ${m.name}`);
     item.innerHTML = `
       <img src="${m.image}" alt="${m.name}" class="map-list-thumb" />
@@ -123,6 +124,12 @@ function renderSidebarList() {
       </div>
     `;
     item.addEventListener('click', () => focusMonastery(m));
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        focusMonastery(m);
+      }
+    });
     list.appendChild(item);
   });
 }

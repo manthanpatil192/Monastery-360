@@ -448,6 +448,12 @@
               <button class="ctrl-btn" id="btn-next" aria-label="Next monastery" data-tooltip="Next">⏭</button>
             </div>
 
+            <!-- Narration Mode Toggle (SIH AI Feature) -->
+            <div style="margin-bottom:16px;background:#f1f3f5;border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:6px;display:flex;gap:6px">
+              <button class="mode-toggle-btn active" id="mode-static" style="flex:1;padding:8px;border-radius:8px;font-size:0.78rem;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#d97706;box-shadow:0 2px 8px rgba(0,0,0,0.05)">📜 Static Script</button>
+              <button class="mode-toggle-btn" id="mode-ai" style="flex:1;padding:8px;border-radius:8px;font-size:0.78rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:#64748b">✨ AI Live Narration</button>
+            </div>
+
             <!-- Speed -->
             <div class="player-speed">
               <span class="speed-label">Playback Speed</span>
@@ -518,5 +524,6 @@
   <script src="js/main.js"></script>
   <script src="js/guide.js"></script>
   <script src="js/chatbot.js"></script>
+  <script src="js/i18n.js"></script>
 </body>
 </html>

@@ -8,7 +8,19 @@ document.addEventListener('DOMContentLoaded', () => {
   initCounters();
   setActiveNavLink();
   initToast();
+  registerServiceWorker();
+  initFooterModals();
 });
+
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('[PWA] Service Worker active:', reg.scope))
+        .catch(err => console.warn('[PWA] Service Worker registration error:', err));
+    });
+  }
+}
 
 // =============================================
 // NAVBAR — Scroll effect & mobile toggle
@@ -134,8 +146,9 @@ function initCounters() {
 }
 
 function animateCounter(el) {
-  const target = parseInt(el.dataset.count);
-  const duration = 2000;
+  const target = parseInt(el.dataset.count) || 0;
+  if (!target) return;
+  const duration = 1800;
   const start = performance.now();
 
   const tick = (now) => {
@@ -188,6 +201,55 @@ function showToast(message, type = 'info', duration = 3000) {
 // =============================================
 // UTILITY FUNCTIONS
 // =============================================
+
+// =============================================
+// FOOTER MODALS (ABOUT & CONTACT)
+// =============================================
+function initFooterModals() {
+  document.querySelectorAll('a[href="#about"], a[href="#contact"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isAbout = link.getAttribute('href') === '#about';
+      openProjectModal(isAbout ? 'about' : 'contact');
+    });
+  });
+}
+
+function openProjectModal(type) {
+  let modal = document.getElementById('project-info-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'project-info-modal';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  const title = type === 'about' ? 'ℹ️ About Monastery 360' : '📬 Contact Team Mark42';
+  const content = type === 'about' ? `
+    <p style="margin-bottom:12px;color:var(--clr-text)"><strong>Monastery 360</strong> is developed for <strong>Smart India Hackathon (SIH) 2025</strong> by <strong>Team Mark42</strong>.</p>
+    <p style="margin-bottom:12px;color:var(--clr-text-muted)"><strong>Problem Statement:</strong> Digital documentation, preservation, and immersive 360° VR presentation of Sikkim's sacred Buddhist monasteries.</p>
+    <p style="color:var(--clr-text-muted)"><strong>Core Innovations:</strong> WebGL 360° VR Photo Spheres, Groq Llama-3.3 AI Audio Guide, PWA Offline Caching, Interactive Leaflet Maps, and Multilingual i18n support.</p>
+  ` : `
+    <p style="margin-bottom:16px;color:var(--clr-text)">Have questions, feedback, or contribution ideas for Monastery 360?</p>
+    <div style="background:#f1f3f5;padding:16px;border-radius:12px;margin-bottom:16px">
+      <p style="font-weight:700;color:#0f172a">Team Leader: Manthan Patil (Team Mark42)</p>
+      <p style="font-size:0.85rem;color:#64748b">GitHub: <a href="https://github.com/manthanpatil192/Monastery-360" target="_blank" style="color:#d97706">manthanpatil192/Monastery-360</a></p>
+    </div>
+    <a href="mailto:manthanpatil192@gmail.com" class="btn btn-primary" style="width:100%;justify-content:center">✉️ Email Team Leader</a>
+  `;
+
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">${title}</h3>
+        <button class="modal-close" onclick="document.getElementById('project-info-modal').classList.remove('active')">✕</button>
+      </div>
+      <div class="modal-body">${content}</div>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
 
 // Format date nicely
 function formatDate(dateStr) {

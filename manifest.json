@@ -1,0 +1,22 @@
+{
+  "name": "Monastery 360 — Digital Heritage of Sikkim",
+  "short_name": "Monastery360",
+  "description": "Preserving the sacred heritage of Sikkim's Buddhist monasteries through 360° VR tours, digital archives, and AI audio guides.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#d97706",
+  "icons": [
+    {
+      "src": "assets/images/hero.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/hero.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

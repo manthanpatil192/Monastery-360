@@ -1,56 +1,51 @@
 // =============================================
-// GUIDE.JS — AI Audio Guide with Web Speech API
+// GUIDE.JS — AI Audio Guide (Groq Llama-3.3 + Web Speech API)
 // =============================================
 
-// Monastery narration scripts
 const NARRATIONS = {
   rumtek: {
     chapters: [
       { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Rumtek Monastery, one of the largest and most significant Buddhist monasteries in Sikkim. Perched at an altitude of fourteen hundred and seventy meters above sea level, this magnificent complex is the seat of the Karma Kagyu lineage of Tibetan Buddhism.' },
-      { title: 'History', icon: '📜', time: '0:35', text: 'Founded in 1740 by the 12th Karmapa Changchub Dorje, the monastery was later rebuilt and expanded in the 1960s under the 16th Karmapa Rangjung Rigpe Dorje. The original monastery dates back even further, to the 16th century, and was known as Dordrak Chotrul Migyur Dorjee Ling.' },
-      { title: 'Architecture', icon: '🎨', time: '1:15', text: 'The monastery complex is a masterpiece of traditional Tibetan architecture. The main prayer hall, known as the Tsuglagkhang, rises three stories high and houses magnificent murals, thangka paintings, and a stunning collection of Buddhist art. The elaborate golden roof glistens in the Himalayan sun, visible from miles around.' },
-      { title: 'Sacred Artifacts', icon: '☸️', time: '2:00', text: 'Within the monastery walls lies the Golden Stupa, containing the precious relics of the 16th Karmapa. The monastery library houses over five thousand hand-written and block-printed Buddhist scriptures. The Nalanda Institute for Higher Buddhist Studies, located within the complex, continues the tradition of Buddhist scholarship.' },
-      { title: 'Festival Life', icon: '🎭', time: '2:45', text: 'The annual Kagyu Monlam prayers and the spectacular Black Hat Cham dance attract thousands of pilgrims and visitors each year. The sacred masked dances, performed by trained monks, represent the eternal victory of wisdom over ignorance. The ceremonies fill the monastery courtyard with color, music, and devotion.' },
+      { title: 'History', icon: '📜', time: '0:35', text: 'Founded in 1740 by the 12th Karmapa Changchub Dorje, the monastery was later rebuilt and expanded in the 1960s under the 16th Karmapa Rangjung Rigpe Dorje. The original monastery dates back even further, to the 16th century.' },
+      { title: 'Architecture', icon: '🎨', time: '1:15', text: 'The monastery complex is a masterpiece of traditional Tibetan architecture. The main prayer hall, known as the Tsuglagkhang, rises three stories high and houses magnificent murals, thangka paintings, and a stunning collection of Buddhist art.' },
+      { title: 'Sacred Artifacts', icon: '☸️', time: '2:00', text: 'Within the monastery walls lies the Golden Stupa, containing the precious relics of the 16th Karmapa. The monastery library houses over five thousand hand-written and block-printed Buddhist scriptures.' },
+      { title: 'Festival Life', icon: '🎭', time: '2:45', text: 'The annual Kagyu Monlam prayers and the spectacular Black Hat Cham dance attract thousands of pilgrims and visitors each year. The sacred masked dances represent the eternal victory of wisdom over ignorance.' },
     ],
   },
   pemayangtse: {
     chapters: [
-      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Pemayangtse Monastery, whose name means "Perfect Sublime Lotus." Situated at over two thousand meters above sea level in West Sikkim, this three-story monastery is one of the oldest and most revered Buddhist institutions in Sikkim.' },
-      { title: 'History', icon: '📜', time: '0:40', text: 'Established in 1705 under the patronage of Chogyal Chakdor Namgyal, the third ruler of Sikkim, Pemayangtse has been a center of the Nyingma lineage of Tibetan Buddhism for over three centuries. It is considered the premier monastery of Sikkim, and only Lachhenpa monks of pure Bhutia descent were traditionally allowed to serve here.' },
-      { title: 'The Zandok Palri', icon: '🎨', time: '1:20', text: 'The most extraordinary treasure within Pemayangtse is the Zandok Palri, a remarkable seven-tiered model of Guru Rinpoche\'s paradise, handcrafted entirely by one monk over five years. This intricate wooden sculpture rises over six feet high and depicts the celestial realm of Guru Padmasambhava in extraordinary detail.' },
-      { title: 'The Landscape', icon: '⛰️', time: '2:05', text: 'From the monastery\'s terrace, on clear days, you can behold the majestic Kanchenjunga, the world\'s third highest mountain, rising above the clouds at over eight thousand meters. The surrounding landscape of rhododendron forests, terraced fields, and ancient prayer walls creates a deeply spiritual atmosphere.' },
+      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Pemayangtse Monastery, whose name means "Perfect Sublime Lotus." Situated at over two thousand meters above sea level in West Sikkim, this three-story monastery is one of the oldest in Sikkim.' },
+      { title: 'History', icon: '📜', time: '0:40', text: 'Established in 1705 under the patronage of Chogyal Chakdor Namgyal, Pemayangtse has been a center of the Nyingma lineage for over three centuries.' },
+      { title: 'The Zandok Palri', icon: '🎨', time: '1:20', text: 'The most extraordinary treasure within Pemayangtse is the Zandok Palri, a remarkable seven-tiered model of Guru Rinpoche\'s paradise, handcrafted entirely by one monk over five years.' },
+      { title: 'The Landscape', icon: '⛰️', time: '2:05', text: 'From the monastery\'s terrace, on clear days, you can behold the majestic Kanchenjunga, the world\'s third highest mountain, rising above the clouds.' },
     ],
   },
   tashiding: {
     chapters: [
-      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Tashiding Monastery, considered the most sacred site in all of Sikkim. Perched dramatically atop a conical hilltop at the confluence of the Rangit and Rathong rivers, this ancient monastery radiates an extraordinary spiritual presence.' },
-      { title: 'Sacred Status', icon: '☸️', time: '0:38', text: 'Founded in 1716 by Ngadak Sempa Chempo, Tashiding occupies a site believed to have been blessed by Guru Padmasambhava himself. The name Tashiding means "Sublime Spot of the Central Glory." Local tradition holds that anyone who circumambulates the monastery with sincere devotion will be cleansed of all sins accumulated over seven lifetimes.' },
-      { title: 'The Bumchu Festival', icon: '🫙', time: '1:20', text: 'The most extraordinary event at Tashiding is the annual Bumchu festival, held on the fifteenth day of the first month of the Tibetan calendar. During this ceremony, a sacred sealed bronze vessel, said to have been placed here by Guru Rinpoche himself, is opened to reveal the level of holy water inside. The water level is interpreted as a prophecy for the coming year.' },
-      { title: 'The Stupas', icon: '🔵', time: '2:05', text: 'The monastery compound contains numerous ancient stupas, the most sacred being the Thongwa Rangdol stupa, whose name means "Liberation on Sight." Merely gazing upon this stupa is said to purify one\'s mind and bring liberation. The hilltop location offers breathtaking views across the forested valleys and distant snowpeaks.' },
+      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Tashiding Monastery, considered the most sacred site in all of Sikkim. Perched dramatically atop a conical hilltop, this ancient monastery radiates an extraordinary spiritual presence.' },
+      { title: 'Sacred Status', icon: '☸️', time: '0:38', text: 'Founded in 1716 by Ngadak Sempa Chempo, Tashiding occupies a site believed to have been blessed by Guru Padmasambhava himself.' },
+      { title: 'The Bumchu Festival', icon: '🫙', time: '1:20', text: 'The most extraordinary event at Tashiding is the annual Bumchu festival, where a sacred sealed bronze vessel is opened to reveal holy water that predicts the coming year.' },
     ],
   },
   enchey: {
     chapters: [
-      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Enchey Monastery, a serene hilltop sanctuary above the bustling capital city of Gangtok in East Sikkim. The name Enchey means "solitary temple," and despite its proximity to the city, the monastery maintains a profound sense of peaceful isolation.' },
-      { title: 'History', icon: '📜', time: '0:35', text: 'The current structure was built in 1840, though a hermitage has existed at this sacred site for much longer. The great Tantric master Lama Druptop Karpo is said to have flown to this spot and meditated here, establishing its spiritual significance. The monastery belongs to the Nyingma school of Tibetan Buddhism.' },
-      { title: 'Chaam Dance', icon: '🎭', time: '1:15', text: 'Enchey Monastery is perhaps most famous for its spectacular annual Chaam dance festival, held in the twelfth month of the Tibetan calendar. Monks in elaborate costumes and fierce masks perform sacred dances in the monastery courtyard, reenacting stories of the triumph of good over evil. These dances have been performed continuously for generations.' },
-      { title: 'The View', icon: '🌄', time: '2:00', text: 'From the monastery\'s observation deck, you are rewarded with one of the finest panoramic views in Gangtok. On clear mornings, the entire Kanchenjunga massif spreads across the horizon in a breathtaking display. The prayer flags that flutter around the monastery perimeter carry the monks\' prayers on the mountain winds across the Himalayan landscape.' },
+      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Enchey Monastery, a serene hilltop sanctuary above Gangtok in East Sikkim. The name Enchey means "solitary temple."' },
+      { title: 'History', icon: '📜', time: '0:35', text: 'The current structure was built in 1840. The great Tantric master Lama Druptop Karpo is said to have flown to this spot and meditated here.' },
+      { title: 'Chaam Dance', icon: '🎭', time: '1:15', text: 'Enchey Monastery is famous for its spectacular annual Chaam dance festival, where monks in elaborate costumes and masks reenact spiritual stories.' },
     ],
   },
   ralang: {
     chapters: [
-      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Ralang Monastery, a beautiful Kagyu monastery nestled in the hills near Ravangla in South Sikkim. Established in 1768, this monastery serves as an important center of spiritual learning and practice for the local Buddhist community.' },
-      { title: 'History', icon: '📜', time: '0:38', text: 'Ralang Monastery was founded during the reign of Chogyal Tenzing Namgyal, the sixth ruler of Sikkim. The monastery belongs to the Karma Kagyu lineage and maintains strong connections with Rumtek Monastery, the main seat of the Karmapa. The name Ralang refers to the local area and the monastery has served as a spiritual anchor for the surrounding region for over two and a half centuries.' },
-      { title: 'Pang Lhabsol', icon: '⛰️', time: '1:20', text: 'Ralang Monastery is one of the key venues for the celebration of Pang Lhabsol, Sikkim\'s unique thanksgiving festival. This festival honors Mount Kangchenjunga, the world\'s third highest peak, as the guardian deity and protector of Sikkim. The dramatic masked dances representing the mountain deity and warrior guardian Mahakala are among the most spectacular religious performances in the entire Himalayan region.' },
+      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Ralang Monastery, a beautiful Kagyu monastery nestled in the hills near Ravangla in South Sikkim, established in 1768.' },
+      { title: 'Pang Lhabsol', icon: '⛰️', time: '1:20', text: 'Ralang is one of the key venues for Pang Lhabsol, Sikkim\'s unique thanksgiving festival honoring Mount Kanchenjunga.' },
     ],
   },
   namchi: {
     chapters: [
-      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Samdruptse Monastery complex in Namchi, home to one of the most dramatic religious monuments in northeast India. The complex is dominated by the massive statue of Guru Padmasambhava, the lotus-born master who brought Tantric Buddhism to Tibet and the Himalayan regions.' },
-      { title: 'The Great Statue', icon: '🧘', time: '0:40', text: 'The centerpiece of the complex is a colossal one hundred and thirty five feet tall statue of Guru Rinpoche, making it one of the tallest statues of Guru Padmasambhava in the world. Completed in 2004, the statue stands upon a hill and can be seen from vast distances across South Sikkim. The interior of the statue contains meditation rooms, murals, and sacred objects.' },
-      { title: 'The Panorama', icon: '🌄', time: '1:25', text: 'The hilltop location of Samdruptse provides extraordinary panoramic views of the surrounding mountains, valleys, and the town of Namchi below. On clear days, the snow-capped peaks of the Himalayas form a magnificent backdrop to the golden statue. The complex includes beautifully maintained gardens, prayer halls, and a Buddhist museum.' },
+      { title: 'Introduction', icon: '🏯', time: '0:00', text: 'Welcome to Samdruptse Monastery complex in Namchi, dominated by the colossal 135ft statue of Guru Padmasambhava.' },
+      { title: 'The Great Statue', icon: '🧘', time: '0:40', text: 'Completed in 2004, the giant golden statue stands atop Samdruptse hill overlooking South Sikkim.' },
     ],
-  },
+  }
 };
 
 let currentMonasteryIdx = 0;
@@ -62,12 +57,14 @@ let progressTimer = null;
 let elapsedSeconds = 0;
 let totalSeconds = 0;
 let selectedLang = 'en-IN';
+let narrationMode = 'static'; // 'static' or 'ai'
 
 document.addEventListener('DOMContentLoaded', () => {
   renderMonasterySelector();
   loadMonastery(0);
   initPlayerControls();
   initSpeedButtons();
+  initModeToggle();
   checkSpeechSupport();
 });
 
@@ -79,6 +76,9 @@ function checkSpeechSupport() {
 
 function renderMonasterySelector() {
   const grid = document.getElementById('monastery-selector-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
   MONASTERIES.forEach((m, i) => {
     const card = document.createElement('div');
     card.className = `selector-card ${i === 0 ? 'active' : ''}`;
@@ -102,24 +102,20 @@ function loadMonastery(idx) {
   currentChapterIdx = 0;
   const monastery = MONASTERIES[idx];
 
-  // Update selector
   document.querySelectorAll('.selector-card').forEach((c, i) => {
     c.classList.toggle('active', i === idx);
   });
 
-  // Update player info
   document.getElementById('player-img').src = monastery.image;
   document.getElementById('player-img').alt = monastery.name;
   document.getElementById('player-type').textContent = `${monastery.type} · Est. ${monastery.year}`;
   document.getElementById('player-name').textContent = monastery.name;
   document.getElementById('player-meta').textContent = `📍 ${monastery.district} · ⛰️ ${monastery.altitude}`;
 
-  // Load chapters
   const narration = NARRATIONS[monastery.id] || NARRATIONS.rumtek;
   renderChapters(narration.chapters);
   updateTranscriptForChapter(narration.chapters[0]);
 
-  // Reset progress
   resetProgress();
   totalSeconds = narration.chapters.reduce((acc, ch) => acc + 40, 0);
   updateTime(0, totalSeconds);
@@ -127,6 +123,7 @@ function loadMonastery(idx) {
 
 function renderChapters(chapters) {
   const container = document.getElementById('highlight-items');
+  if (!container) return;
   container.innerHTML = '';
   chapters.forEach((ch, i) => {
     const item = document.createElement('div');
@@ -149,15 +146,35 @@ function renderChapters(chapters) {
   });
 }
 
-function getFullNarrationText() {
-  const monastery = MONASTERIES[currentMonasteryIdx];
-  const narration = NARRATIONS[monastery.id] || NARRATIONS.rumtek;
-  return narration.chapters.map(ch => ch.text).join(' ... ');
-}
-
 function updateTranscriptForChapter(chapter) {
   const body = document.getElementById('transcript-body');
-  body.innerHTML = `<p><em style="color:var(--clr-gold);font-style:normal;font-weight:600">${chapter.icon} ${chapter.title}</em></p><br/><p>${chapter.text}</p>`;
+  if (!body) return;
+  body.innerHTML = `<p><em style="color:#d97706;font-style:normal;font-weight:700">${chapter.icon || '🎙️'} ${chapter.title}</em></p><br/><p>${chapter.text}</p>`;
+}
+
+function initModeToggle() {
+  const staticBtn = document.getElementById('mode-static');
+  const aiBtn = document.getElementById('mode-ai');
+
+  if (!staticBtn || !aiBtn) return;
+
+  staticBtn.addEventListener('click', () => {
+    narrationMode = 'static';
+    staticBtn.classList.add('active');
+    staticBtn.style.background = '#ffffff'; staticBtn.style.color = '#d97706'; staticBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+    aiBtn.classList.remove('active');
+    aiBtn.style.background = 'transparent'; aiBtn.style.color = '#64748b'; aiBtn.style.boxShadow = 'none';
+    showToast('Switched to Pre-scripted Audio Guide', 'info', 1500);
+  });
+
+  aiBtn.addEventListener('click', () => {
+    narrationMode = 'ai';
+    aiBtn.classList.add('active');
+    aiBtn.style.background = '#ffffff'; aiBtn.style.color = '#d97706'; aiBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+    staticBtn.classList.remove('active');
+    staticBtn.style.background = 'transparent'; staticBtn.style.color = '#64748b'; staticBtn.style.boxShadow = 'none';
+    showToast('✨ AI Live Narration Activated (Groq Llama-3.3)', 'info', 2000);
+  });
 }
 
 // AUDIO CONTROLS
@@ -197,30 +214,48 @@ function togglePlay() {
   }
 }
 
-function startAudio() {
+async function startAudio() {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
 
   const monastery = MONASTERIES[currentMonasteryIdx];
-  const narration = NARRATIONS[monastery.id] || NARRATIONS.rumtek;
-  const chapter = narration.chapters[currentChapterIdx];
+  let textToSpeak = '';
 
-  utterance = new SpeechSynthesisUtterance(chapter.text);
+  if (narrationMode === 'ai') {
+    showToast('✨ Generating AI Narration via Groq...', 'info', 2000);
+    const body = document.getElementById('transcript-body');
+    if (body) body.innerHTML = `<p style="color:#d97706;font-weight:600">✨ Generating live AI audio narration script for ${monastery.name} using Groq Llama-3.3...</p>`;
+
+    try {
+      if (typeof fetchGroqCompletion === 'function') {
+        textToSpeak = await fetchGroqCompletion(`Write a compelling 2-paragraph spoken audio tour guide narration script for ${monastery.name} in ${monastery.district}, Sikkim. Describe its history (est. ${monastery.year}), ${monastery.type} Buddhist lineage, architectural features, and spiritual atmosphere.`);
+        updateTranscriptForChapter({ title: `AI Live Narration — ${monastery.name}`, icon: '✨', text: textToSpeak });
+      } else {
+        throw new Error('Groq engine unavailable');
+      }
+    } catch (err) {
+      console.warn('AI live narration fallback to static:', err);
+      showToast('Offline fallback: Using pre-scripted narration', 'warning', 2000);
+      const narration = NARRATIONS[monastery.id] || NARRATIONS.rumtek;
+      const chapter = narration.chapters[currentChapterIdx];
+      textToSpeak = chapter.text;
+      updateTranscriptForChapter(chapter);
+    }
+  } else {
+    const narration = NARRATIONS[monastery.id] || NARRATIONS.rumtek;
+    const chapter = narration.chapters[currentChapterIdx];
+    textToSpeak = chapter.text;
+    updateTranscriptForChapter(chapter);
+  }
+
+  utterance = new SpeechSynthesisUtterance(textToSpeak);
   utterance.rate = speechRate;
   utterance.lang = selectedLang;
   utterance.pitch = 0.95;
 
   utterance.onend = () => {
-    // Move to next chapter
-    if (currentChapterIdx < narration.chapters.length - 1) {
-      currentChapterIdx++;
-      const nextChapter = narration.chapters[currentChapterIdx];
-      updateTranscriptForChapter(nextChapter);
-      startAudio();
-    } else {
-      stopAudio();
-      showToast('Audio tour complete!', 'success');
-    }
+    stopAudio();
+    showToast('Audio guide complete!', 'success');
   };
 
   utterance.onerror = () => {
@@ -232,7 +267,6 @@ function startAudio() {
   isPlaying = true;
   setPlayState(true);
   startProgressTimer();
-  updateTranscriptForChapter(chapter);
 }
 
 function pauseAudio() {
@@ -256,8 +290,10 @@ function setPlayState(playing) {
   btn.setAttribute('aria-label', playing ? 'Pause audio' : 'Play audio');
 
   const waveform = document.getElementById('waveform');
-  if (playing) waveform.classList.remove('paused');
-  else waveform.classList.add('paused');
+  if (waveform) {
+    if (playing) waveform.classList.remove('paused');
+    else waveform.classList.add('paused');
+  }
 }
 
 function startProgressTimer() {
