@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>360° Virtual Tour — Monastery 360</title>
+  <meta name="description" content="Explore Sikkim's monasteries through immersive 360° virtual tours with interactive hotspots and historical details." />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    /* ===== TOUR PAGE SPECIFIC ===== */
+    .tour-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: calc(100vh - var(--nav-height));
+      margin-top: var(--nav-height);
+      overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    .tour-sidebar {
+      background: var(--clr-bg-2);
+      border-right: 1px solid var(--clr-border);
+      overflow-y: auto;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tour-sidebar::-webkit-scrollbar { width: 4px; }
+    .tour-sidebar::-webkit-scrollbar-thumb { background: var(--clr-gold-dark); }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--clr-border);
+      background: var(--clr-bg-3);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .sidebar-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .sidebar-search {
+      position: relative;
+    }
+
+    .sidebar-search input {
+      width: 100%;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: 10px;
+      padding: 9px 14px 9px 36px;
+      color: var(--clr-text);
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color var(--transition-fast);
+    }
+
+    .sidebar-search input:focus {
+      border-color: rgba(244, 168, 50, 0.4);
+    }
+
+    .sidebar-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      opacity: 0.5;
+    }
+
+    .monastery-list {
+      padding: 12px;
+      flex: 1;
+    }
+
+    .monastery-list-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: 1px solid transparent;
+      margin-bottom: 6px;
+    }
+
+    .monastery-list-item:hover {
+      background: var(--clr-surface);
+      border-color: var(--clr-border);
+    }
+
+    .monastery-list-item.active {
+      background: rgba(244, 168, 50, 0.08);
+      border-color: rgba(244, 168, 50, 0.3);
+    }
+
+    .monastery-list-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .monastery-list-info { flex: 1; min-width: 0; }
+
+    .monastery-list-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--clr-heading);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .monastery-list-meta {
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+    }
+
+    .monastery-list-badge {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--clr-gold);
+      margin-top: 4px;
+      flex-shrink: 0;
+      display: none;
+    }
+
+    .monastery-list-item.active .monastery-list-badge { display: block; }
+
+    /* TOUR VIEWER */
+    .tour-viewer {
+      position: relative;
+      overflow: hidden;
+      background: #000;
+      cursor: grab;
+    }
+
+    .tour-viewer:active { cursor: grabbing; }
+
+    /* 360 panorama */
+    .panorama-canvas {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      width: 100%;
+      height: 100%;
+      transition: background-image 0.5s ease;
+      user-select: none;
+    }
+
+    .panorama-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.3) 100%);
+      pointer-events: none;
+    }
+
+    /* HOTSPOTS */
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      z-index: 10;
+      transform: translate(-50%, -50%);
+    }
+
+    .hotspot-btn {
+      width: 48px;
+      height: 48px;
+      background: rgba(244, 168, 50, 0.2);
+      border: 2px solid rgba(244, 168, 50, 0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      backdrop-filter: blur(10px);
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .hotspot-btn::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 2px solid rgba(244, 168, 50, 0.4);
+      border-radius: 50%;
+      animation: hotspotPing 1.5s ease-out infinite;
+    }
+
+    .hotspot:hover .hotspot-btn {
+      background: rgba(244, 168, 50, 0.5);
+      transform: scale(1.15);
+    }
+
+    .hotspot-label {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--clr-border);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--clr-text);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .hotspot:hover .hotspot-label { opacity: 1; }
+
+    /* INFO PANEL */
+    .tour-info-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 320px;
+      z-index: 20;
+      transform: translateX(120%);
+      transition: transform var(--transition-med);
+    }
+
+    .tour-info-panel.open { transform: translateX(0); }
+
+    .info-panel-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: var(--glass-border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .info-panel-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .info-panel-content {
+      padding: 20px;
+    }
+
+    .info-panel-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      z-index: 5;
+    }
+
+    /* TOUR CONTROLS BAR */
+    .tour-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tour-controls-bar {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: var(--glass-border);
+      border-radius: 100px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .tour-control-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--clr-text);
+      font-size: 1.1rem;
+      transition: all var(--transition-fast);
+    }
+
+    .tour-control-btn:hover {
+      background: rgba(244, 168, 50, 0.15);
+      border-color: rgba(244, 168, 50, 0.4);
+      color: var(--clr-gold);
+    }
+
+    .tour-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--clr-border);
+    }
+
+    /* SCENE TABS */
+    .scene-tabs {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scene-tab {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--clr-border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .scene-tab.active, .scene-tab:hover {
+      background: rgba(244, 168, 50, 0.15);
+      border-color: rgba(244, 168, 50, 0.4);
+      color: var(--clr-gold);
+    }
+
+    /* MONASTERY HEADER OVERLAY */
+    .monastery-header-overlay {
+      position: absolute;
+      bottom: 80px;
+      left: 20px;
+      z-index: 15;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: var(--glass-border);
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+
+    .monastery-header-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--clr-heading);
+      margin-bottom: 4px;
+    }
+
+    .monastery-header-meta {
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* FULLSCREEN */
+    .tour-viewer:fullscreen {
+      background: #000;
+    }
+
+    /* COMPASS */
+    .compass {
+      position: absolute;
+      top: 20px;
+      right: 360px;
+      width: 60px;
+      height: 60px;
+      z-index: 20;
+    }
+
+    .compass-ring {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--clr-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .compass-needle {
+      position: absolute;
+      width: 3px;
+      height: 22px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -100%) rotate(0deg);
+      transform-origin: bottom center;
+      transition: transform 0.3s ease;
+    }
+
+    .compass-north { background: var(--clr-gold); border-radius: 2px 2px 0 0; height: 12px; }
+    .compass-south { background: var(--clr-text-muted); border-radius: 0 0 2px 2px; height: 10px; }
+
+    .compass-n-label {
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--clr-gold);
+    }
+
+    /* DRAG HINT */
+    .drag-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    .drag-hint.hidden { opacity: 0; }
+
+    .drag-hint-icon {
+      font-size: 3rem;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    .drag-hint-text {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--clr-border);
+      border-radius: 100px;
+      padding: 8px 20px;
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .tour-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .tour-sidebar {
+        height: auto;
+        max-height: 260px;
+        border-right: none;
+        border-bottom: 1px solid var(--clr-border);
+      }
+
+      .tour-viewer {
+        height: 60vh;
+        min-height: 400px;
+      }
+
+      .tour-info-panel {
+        width: calc(100% - 40px);
+        right: 20px;
+      }
+
+      .compass { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">🏯</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-name">Monastery 360</span>
+          <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="tour.html" class="nav-link active">Virtual Tour</a>
+        <a href="monasteries.html" class="nav-link">Monasteries</a>
+        <a href="archive.html" class="nav-link">Archive</a>
+        <a href="calendar.html" class="nav-link">Calendar</a>
+        <a href="map.html" class="nav-link">Map</a>
+        <a href="guide.html" class="nav-link nav-cta">🎙️ Audio Guide</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <!-- TOUR LAYOUT -->
+  <div class="tour-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="tour-sidebar" aria-label="Monastery selector">
+      <div class="sidebar-header">
+        <h2>🏯 Select Monastery</h2>
+        <div class="sidebar-search">
+          <span class="sidebar-search-icon">🔍</span>
+          <input type="text" id="monastery-search" placeholder="Search monasteries..." aria-label="Search monasteries" />
+        </div>
+      </div>
+      <div class="monastery-list" id="monastery-list" role="listbox" aria-label="Monastery list">
+        <!-- Populated by JS -->
+      </div>
+    </aside>
+
+    <!-- VIEWER -->
+    <main class="tour-viewer" id="tour-viewer" aria-label="360° Virtual Tour Viewer">
+
+      <!-- Panorama background -->
+      <div class="panorama-canvas" id="panorama-canvas"></div>
+      <div class="panorama-overlay"></div>
+
+      <!-- Drag hint -->
+      <div class="drag-hint" id="drag-hint" aria-hidden="true">
+        <span class="drag-hint-icon">👆</span>
+        <span class="drag-hint-text">Click & drag to look around</span>
+      </div>
+
+      <!-- Hotspots -->
+      <div id="hotspots-container" aria-label="Tour hotspots"></div>
+
+      <!-- Scene tabs -->
+      <div class="scene-tabs" id="scene-tabs" aria-label="Scene navigation"></div>
+
+      <!-- Compass -->
+      <div class="compass" aria-hidden="true">
+        <div class="compass-ring">
+          <span class="compass-n-label">N</span>
+          <div id="compass-needle" class="compass-needle">
+            <div class="compass-north"></div>
+            <div class="compass-south"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monastery header overlay -->
+      <div class="monastery-header-overlay" id="monastery-header" aria-live="polite">
+        <div class="monastery-header-name" id="monastery-name">Select a Monastery</div>
+        <div class="monastery-header-meta" id="monastery-meta"></div>
+      </div>
+
+      <!-- Info Panel -->
+      <div class="tour-info-panel" id="info-panel" aria-label="Hotspot information panel" role="dialog">
+        <div class="info-panel-card">
+          <img src="" alt="Hotspot image" id="info-panel-img" class="info-panel-img" />
+          <button class="info-panel-close" id="info-panel-close" aria-label="Close info panel">✕</button>
+          <div class="info-panel-content">
+            <p class="card-label" id="info-panel-type">Location</p>
+            <h3 class="card-title" id="info-panel-title">Hotspot Title</h3>
+            <p class="card-description" id="info-panel-desc">Description goes here.</p>
+            <div style="margin-top:16px">
+              <a href="guide.html" class="btn btn-primary btn-sm" id="info-panel-audio-btn">🎙️ Hear Audio Guide</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls bar -->
+      <div class="tour-controls" role="toolbar" aria-label="Tour controls">
+        <div class="tour-controls-bar">
+          <button class="tour-control-btn" id="ctrl-zoom-out" aria-label="Zoom out" data-tooltip="Zoom Out">🔍−</button>
+          <button class="tour-control-btn" id="ctrl-zoom-in" aria-label="Zoom in" data-tooltip="Zoom In">🔍+</button>
+          <div class="tour-divider"></div>
+          <button class="tour-control-btn" id="ctrl-reset" aria-label="Reset view" data-tooltip="Reset View">🔄</button>
+          <button class="tour-control-btn" id="ctrl-auto-rotate" aria-label="Auto rotate" data-tooltip="Auto Rotate">▶️</button>
+          <div class="tour-divider"></div>
+          <button class="tour-control-btn" id="ctrl-fullscreen" aria-label="Fullscreen" data-tooltip="Fullscreen">⛶</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/tour.js"></script>
+</body>
+</html>

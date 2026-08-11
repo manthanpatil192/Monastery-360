@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monastery 360 — Digital Heritage of Sikkim's Sacred Monasteries</title>
+  <meta name="description" content="Explore Sikkim's 200+ Buddhist monasteries through immersive 360° virtual tours, digital archives, interactive maps, and AI-powered audio guides." />
+  <meta name="keywords" content="Sikkim monasteries, 360 virtual tour, Buddhist heritage, Rumtek, Pemayangtse, digital archive" />
+  <meta property="og:title" content="Monastery 360 — Digital Heritage of Sikkim" />
+  <meta property="og:description" content="Immersive 360° virtual tours of Sikkim's ancient Buddhist monasteries." />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    /* ===== HOME PAGE SPECIFIC ===== */
+
+    /* HERO */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .hero-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      animation: heroZoom 20s ease-in-out infinite alternate;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        linear-gradient(0deg, var(--clr-bg) 0%, rgba(7,7,15,0.6) 40%, rgba(7,7,15,0.3) 70%, rgba(7,7,15,0.5) 100%);
+    }
+
+    /* Mandala decoration */
+    .hero-mandala {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(244, 168, 50, 0.15);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero-mandala-1 {
+      width: 600px;
+      height: 600px;
+      top: 50%;
+      right: -100px;
+      transform: translateY(-50%);
+      animation: mandalaRotate 40s linear infinite;
+    }
+
+    .hero-mandala-2 {
+      width: 400px;
+      height: 400px;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      animation: mandalaRotate 25s linear infinite reverse;
+    }
+
+    .hero-mandala-3 {
+      width: 200px;
+      height: 200px;
+      top: 20%;
+      left: 8%;
+      animation: mandalaRotate 30s linear infinite;
+      border-color: rgba(224, 92, 42, 0.1);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: 0 24px;
+      padding-top: 80px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(244, 168, 50, 0.1);
+      border: 1px solid rgba(244, 168, 50, 0.25);
+      border-radius: 100px;
+      padding: 8px 18px;
+      margin-bottom: 28px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hero-eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--clr-gold);
+      border-radius: 50%;
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--clr-heading);
+      letter-spacing: 0.03em;
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+
+    .hero-title span {
+      background: var(--grad-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-description {
+      font-size: 1.15rem;
+      color: rgba(240, 232, 213, 0.8);
+      max-width: 560px;
+      line-height: 1.75;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--clr-text-muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    .hero-scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--clr-gold), transparent);
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+      padding: 0;
+      margin-top: -1px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .stats-bar {
+      background: var(--clr-bg-2);
+      border-top: 1px solid var(--clr-border);
+      border-bottom: 1px solid var(--clr-border);
+      padding: 40px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+
+    .stat-item-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+    }
+
+    .stat-item-wrap:not(:last-child) {
+      border-right: 1px solid var(--clr-border);
+    }
+
+    /* ===== FEATURES SECTION ===== */
+    .feature-card {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      transition: all var(--transition-med);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--grad-gold);
+      opacity: 0;
+      transition: opacity var(--transition-med);
+    }
+
+    .feature-card:hover {
+      background: var(--clr-surface-hover);
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-glow-soft), 0 0 1px rgba(244,168,50,0.3);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--clr-text-muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .feature-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--clr-gold);
+      transition: gap var(--transition-fast);
+    }
+
+    .feature-link:hover {
+      gap: 10px;
+    }
+
+    /* ===== MONASTERIES FEATURED ===== */
+    .monastery-card {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      group: true;
+    }
+
+    .monastery-card-img {
+      width: 100%;
+      height: 340px;
+      object-fit: cover;
+      transition: transform var(--transition-slow);
+      display: block;
+    }
+
+    .monastery-card:hover .monastery-card-img {
+      transform: scale(1.06);
+    }
+
+    .monastery-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(7,7,15,0.95) 0%, rgba(7,7,15,0.3) 60%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px;
+      transition: background var(--transition-med);
+    }
+
+    .monastery-card:hover .monastery-card-overlay {
+      background: linear-gradient(0deg, rgba(7,7,15,0.98) 0%, rgba(7,7,15,0.5) 60%, rgba(7,7,15,0.1) 100%);
+    }
+
+    .monastery-card-type {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--clr-gold);
+      margin-bottom: 8px;
+    }
+
+    .monastery-card-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--clr-heading);
+      margin-bottom: 6px;
+    }
+
+    .monastery-card-meta {
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .monastery-card-action {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: rgba(244, 168, 50, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(244, 168, 50, 0.4);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all var(--transition-med);
+    }
+
+    .monastery-card:hover .monastery-card-action {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ===== QUOTE SECTION ===== */
+    .quote-section {
+      padding: var(--section-gap) 0;
+    }
+
+    .quote-block {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 32px;
+      padding: 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quote-block::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(244, 168, 50, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .quote-mark {
+      font-family: var(--font-display);
+      font-size: 8rem;
+      line-height: 0.5;
+      color: rgba(244, 168, 50, 0.2);
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .quote-text {
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 2.5vw, 1.75rem);
+      font-weight: 600;
+      color: var(--clr-heading);
+      line-height: 1.5;
+      max-width: 800px;
+      margin: 0 auto 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .quote-author {
+      font-size: 0.9rem;
+      color: var(--clr-gold);
+      font-weight: 500;
+    }
+
+    /* ===== CTA SECTION ===== */
+    .cta-section {
+      background: linear-gradient(135deg, rgba(244, 168, 50, 0.08) 0%, rgba(224, 92, 42, 0.08) 100%);
+      border: 1px solid rgba(244, 168, 50, 0.15);
+      border-radius: 32px;
+      padding: 80px 60px;
+      text-align: center;
+      margin-bottom: var(--section-gap);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(244, 168, 50, 0.06), transparent 70%);
+    }
+
+    .cta-title {
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .cta-subtitle {
+      font-size: 1.1rem;
+      color: var(--clr-text-muted);
+      margin-bottom: 40px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+    }
+
+    .cta-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-item-wrap:nth-child(2) { border-right: none; }
+      .stat-item-wrap:nth-child(3) { border-top: 1px solid var(--clr-border); border-right: 1px solid var(--clr-border); }
+      .stat-item-wrap:nth-child(4) { border-top: 1px solid var(--clr-border); border-right: none; }
+    }
+
+    @media (max-width: 768px) {
+      .hero-mandala-1, .hero-mandala-2, .hero-mandala-3 { display: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-item-wrap { border-right: none !important; border-bottom: 1px solid var(--clr-border); }
+      .quote-block { padding: 40px 24px; }
+      .cta-section { padding: 50px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo" aria-label="Monastery 360 Home">
+        <div class="nav-logo-icon" aria-hidden="true">🏯</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-name">Monastery 360</span>
+          <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+        </div>
+      </a>
+
+      <div class="nav-links" role="menubar">
+        <a href="index.html" class="nav-link" role="menuitem">Home</a>
+        <a href="tour.html" class="nav-link" role="menuitem">Virtual Tour</a>
+        <a href="monasteries.html" class="nav-link" role="menuitem">Monasteries</a>
+        <a href="archive.html" class="nav-link" role="menuitem">Archive</a>
+        <a href="calendar.html" class="nav-link" role="menuitem">Calendar</a>
+        <a href="map.html" class="nav-link" role="menuitem">Map</a>
+        <a href="guide.html" class="nav-link nav-cta" role="menuitem">🎙️ Audio Guide</a>
+      </div>
+
+      <button class="nav-hamburger" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="hero" aria-label="Hero section">
+    <div class="hero-bg">
+      <img src="assets/images/hero.png" alt="Aerial view of Sikkim monastery in the Himalayas" loading="eager" />
+    </div>
+
+    <!-- Decorative mandalas -->
+    <div class="hero-mandala hero-mandala-1" aria-hidden="true"></div>
+    <div class="hero-mandala hero-mandala-2" aria-hidden="true"></div>
+    <div class="hero-mandala hero-mandala-3" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow animate-fade-in">
+        <span class="hero-eyebrow-dot"></span>
+        Smart India Hackathon 2025 — Digital Heritage
+      </div>
+
+      <h1 class="hero-title animate-fade-in-up delay-100">
+        Discover the Sacred<br /><span>Monasteries of Sikkim</span>
+      </h1>
+
+      <p class="hero-description animate-fade-in-up delay-200">
+        Explore 200+ ancient Buddhist monasteries through immersive 360° virtual tours, 
+        rare digital archives, and AI-powered audio guides — all from anywhere in the world.
+      </p>
+
+      <div class="hero-actions animate-fade-in-up delay-300">
+        <a href="tour.html" class="btn btn-primary btn-lg" id="hero-tour-btn">
+          🌐 Start Virtual Tour
+        </a>
+        <a href="monasteries.html" class="btn btn-outline btn-lg" id="hero-explore-btn">
+          Explore Monasteries
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-scroll-hint" aria-hidden="true">
+      <span>Scroll</span>
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ===== STATS ===== -->
+  <section class="stats-section" aria-label="Platform statistics">
+    <div class="stats-bar">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item-wrap">
+            <div class="stat-item reveal">
+              <div class="stat-number"><span data-count="200">0</span>+</div>
+              <div class="stat-label">Monasteries Documented</div>
+            </div>
+          </div>
+          <div class="stat-item-wrap">
+            <div class="stat-item reveal">
+              <div class="stat-number"><span data-count="8">0</span></div>
+              <div class="stat-label">Districts Covered</div>
+            </div>
+          </div>
+          <div class="stat-item-wrap">
+            <div class="stat-item reveal">
+              <div class="stat-number"><span data-count="500">0</span>+</div>
+              <div class="stat-label">Years of History</div>
+            </div>
+          </div>
+          <div class="stat-item-wrap">
+            <div class="stat-item reveal">
+              <div class="stat-number"><span data-count="1200">0</span>+</div>
+              <div class="stat-label">Digital Artifacts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURES ===== -->
+  <section class="section" id="features" aria-label="Platform features">
+    <div class="container">
+      <div class="section-header center">
+        <span class="section-label reveal">What We Offer</span>
+        <h2 class="section-title reveal delay-100">One Platform, Complete Heritage</h2>
+        <p class="section-subtitle reveal delay-200">
+          From immersive virtual tours to AI-powered audio guides, we bring the monasteries of Sikkim to your fingertips.
+        </p>
+      </div>
+
+      <div class="grid-4">
+        <a href="tour.html" class="feature-card reveal" style="text-decoration:none">
+          <div class="feature-icon gold">🌐</div>
+          <h3>360° Virtual Tours</h3>
+          <p>Step inside ancient prayer halls and explore every corner of Sikkim's monasteries in immersive 360° panoramas.</p>
+          <span class="feature-link">Explore Tours →</span>
+        </a>
+
+        <a href="archive.html" class="feature-card reveal delay-100" style="text-decoration:none">
+          <div class="feature-icon vermillion">📚</div>
+          <h3>Digital Archive</h3>
+          <p>Browse rare manuscripts, ancient murals, historical photographs, and sacred documents digitized for preservation.</p>
+          <span class="feature-link">View Archive →</span>
+        </a>
+
+        <a href="map.html" class="feature-card reveal delay-200" style="text-decoration:none">
+          <div class="feature-icon teal">🗺️</div>
+          <h3>Interactive Map</h3>
+          <p>Geo-tagged map of all monasteries across Sikkim with directions, nearby tourist spots, and planning tools.</p>
+          <span class="feature-link">Open Map →</span>
+        </a>
+
+        <a href="guide.html" class="feature-card reveal delay-300" style="text-decoration:none">
+          <div class="feature-icon purple">🎙️</div>
+          <h3>AI Audio Guide</h3>
+          <p>Smart audio narrations that bring each monastery to life — available in multiple languages with transcript view.</p>
+          <span class="feature-link">Start Guide →</span>
+        </a>
+      </div>
+
+      <!-- Secondary features row -->
+      <div class="grid-2" style="margin-top: 24px">
+        <a href="calendar.html" class="feature-card reveal" style="text-decoration:none; display:flex; gap:24px; align-items:flex-start">
+          <div class="feature-icon gold" style="flex-shrink:0">📅</div>
+          <div>
+            <h3>Cultural Calendar</h3>
+            <p>Never miss a sacred festival. Track Losar, Saga Dawa, Bumchu, and 20+ festivals with dates, locations, and cultural significance.</p>
+            <span class="feature-link">View Calendar →</span>
+          </div>
+        </a>
+
+        <a href="monasteries.html" class="feature-card reveal delay-100" style="text-decoration:none; display:flex; gap:24px; align-items:flex-start">
+          <div class="feature-icon vermillion" style="flex-shrink:0">🏯</div>
+          <div>
+            <h3>Monastery Directory</h3>
+            <p>Detailed profiles for every documented monastery — history, architecture, resident monks, festivals, and how to reach them.</p>
+            <span class="feature-link">Browse Monasteries →</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURED MONASTERIES ===== -->
+  <section class="section" id="monasteries" aria-label="Featured monasteries">
+    <div class="container">
+      <div class="section-header" style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:20px">
+        <div>
+          <span class="section-label reveal">Sacred Sites</span>
+          <h2 class="section-title reveal delay-100">Featured Monasteries</h2>
+        </div>
+        <a href="monasteries.html" class="btn btn-outline reveal delay-200" id="view-all-btn">View All →</a>
+      </div>
+
+      <div class="grid-3" id="featured-monasteries-grid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUOTE ===== -->
+  <section class="quote-section" aria-label="Inspirational quote">
+    <div class="container">
+      <div class="quote-block reveal-scale">
+        <span class="quote-mark" aria-hidden="true">"</span>
+        <p class="quote-text">
+          The monasteries of Sikkim are not just places of worship — they are living museums that hold the soul of the Himalayan people, their art, their wisdom, and their connection to the cosmos.
+        </p>
+        <p class="quote-author">— Digital Heritage Initiative, Monastery 360</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <section class="section" id="how-it-works" aria-label="How to use the platform">
+    <div class="container">
+      <div class="section-header center">
+        <span class="section-label reveal">Getting Started</span>
+        <h2 class="section-title reveal delay-100">Begin Your Journey in 3 Steps</h2>
+      </div>
+
+      <div class="grid-3">
+        <div class="glass-panel" style="padding:36px; text-align:center" class="reveal">
+          <div style="width:64px;height:64px;background:var(--grad-gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:#1a0800;margin:0 auto 20px;box-shadow:var(--shadow-glow-gold)">1</div>
+          <h3 style="font-size:1.2rem;margin-bottom:10px">Choose a Monastery</h3>
+          <p style="font-size:0.875rem;color:var(--clr-text-muted)">Browse our directory or use the interactive map to find a monastery that calls to you.</p>
+        </div>
+
+        <div class="glass-panel reveal delay-200" style="padding:36px; text-align:center">
+          <div style="width:64px;height:64px;background:rgba(224,92,42,0.15);border:1px solid rgba(224,92,42,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--clr-vermillion);margin:0 auto 20px">2</div>
+          <h3 style="font-size:1.2rem;margin-bottom:10px">Start the Virtual Tour</h3>
+          <p style="font-size:0.875rem;color:var(--clr-text-muted)">Dive into a 360° panoramic experience. Click hotspots to discover stories, art, and history.</p>
+        </div>
+
+        <div class="glass-panel reveal delay-400" style="padding:36px; text-align:center">
+          <div style="width:64px;height:64px;background:rgba(42,157,143,0.15);border:1px solid rgba(42,157,143,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--clr-teal);margin:0 auto 20px">3</div>
+          <h3 style="font-size:1.2rem;margin-bottom:10px">Learn & Explore</h3>
+          <p style="font-size:0.875rem;color:var(--clr-text-muted)">Listen to the AI audio guide, explore the digital archive, and plan your real-world visit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="section" aria-label="Call to action">
+    <div class="container">
+      <div class="cta-section reveal-scale">
+        <h2 class="cta-title">Ready to Explore the Sacred?</h2>
+        <p class="cta-subtitle">Join thousands of visitors experiencing Sikkim's monasteries like never before — from anywhere in the world.</p>
+        <div class="cta-actions">
+          <a href="tour.html" class="btn btn-primary btn-lg" id="cta-tour-btn">🌐 Start Virtual Tour</a>
+          <a href="map.html" class="btn btn-glass btn-lg" id="cta-map-btn">🗺️ Explore on Map</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" style="display:inline-flex">
+            <div class="nav-logo-icon">🏯</div>
+            <div class="nav-logo-text">
+              <span class="nav-logo-name">Monastery 360</span>
+              <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+            </div>
+          </a>
+          <p>Preserving the sacred heritage of Sikkim's 200+ Buddhist monasteries through immersive digital experiences. A Smart India Hackathon 2025 initiative.</p>
+        </div>
+
+        <div>
+          <p class="footer-col-title">Explore</p>
+          <div class="footer-links">
+            <a href="tour.html" class="footer-link">Virtual Tours</a>
+            <a href="monasteries.html" class="footer-link">Monasteries</a>
+            <a href="archive.html" class="footer-link">Digital Archive</a>
+            <a href="map.html" class="footer-link">Interactive Map</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="footer-col-title">Resources</p>
+          <div class="footer-links">
+            <a href="calendar.html" class="footer-link">Cultural Calendar</a>
+            <a href="guide.html" class="footer-link">Audio Guide</a>
+            <a href="#" class="footer-link">About Project</a>
+            <a href="#" class="footer-link">Contact</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="footer-col-title">Districts</p>
+          <div class="footer-links">
+            <a href="map.html" class="footer-link">East Sikkim</a>
+            <a href="map.html" class="footer-link">West Sikkim</a>
+            <a href="map.html" class="footer-link">North Sikkim</a>
+            <a href="map.html" class="footer-link">South Sikkim</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 Monastery 360. Built for Smart India Hackathon. Preserving Sikkim's Heritage.</p>
+        <div class="footer-bottom-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Credits</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Populate featured monastery cards
+    document.addEventListener('DOMContentLoaded', () => {
+      const grid = document.getElementById('featured-monasteries-grid');
+      const featured = MONASTERIES.slice(0, 3);
+
+      featured.forEach((m, i) => {
+        const card = document.createElement('a');
+        card.href = `monasteries.html#${m.id}`;
+        card.className = 'monastery-card reveal';
+        card.dataset.delay = i * 120;
+        card.setAttribute('aria-label', `Explore ${m.name}`);
+        card.innerHTML = `
+          <img src="${m.image}" alt="${m.name}" class="monastery-card-img" loading="lazy" />
+          <div class="monastery-card-overlay">
+            <span class="monastery-card-type">${m.type} · Est. ${m.year}</span>
+            <h3 class="monastery-card-name">${m.name}</h3>
+            <div class="monastery-card-meta">
+              <span>📍 ${m.district}</span>
+              <span>⛰️ ${m.altitude}</span>
+            </div>
+          </div>
+          <div class="monastery-card-action">🌐</div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Re-initialize scroll reveal for dynamically added elements
+      initScrollReveal();
+    });
+  </script>
+</body>
+</html>

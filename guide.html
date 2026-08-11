@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Audio Guide — Monastery 360</title>
+  <meta name="description" content="AI-powered audio narration for Sikkim's monasteries. Hear rich descriptions with historical context in multiple languages." />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    .guide-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 32px;
+      padding-top: calc(var(--nav-height) + 40px);
+      padding-bottom: 80px;
+    }
+
+    /* PLAYER SECTION */
+    .guide-player {
+      position: sticky;
+      top: calc(var(--nav-height) + 20px);
+      height: fit-content;
+    }
+
+    .player-card {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .player-monastery-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .player-body {
+      padding: 28px;
+    }
+
+    .player-monastery-type {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--clr-gold);
+      margin-bottom: 6px;
+    }
+
+    .player-monastery-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .player-monastery-meta {
+      font-size: 0.85rem;
+      color: var(--clr-text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* WAVEFORM */
+    .player-waveform-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 64px;
+      margin-bottom: 20px;
+      background: var(--clr-surface);
+      border-radius: 14px;
+    }
+
+    /* PROGRESS BAR */
+    .player-progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .progress-time {
+      font-size: 0.78rem;
+      color: var(--clr-text-muted);
+      width: 40px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 4px;
+      background: var(--clr-surface);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--grad-gold);
+      border-radius: 2px;
+      transition: width 0.3s linear;
+    }
+
+    /* PLAYER CONTROLS */
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .ctrl-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--clr-text);
+      font-size: 1rem;
+      transition: all var(--transition-fast);
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(244,168,50,0.15);
+      border-color: rgba(244,168,50,0.4);
+      color: var(--clr-gold);
+    }
+
+    .ctrl-btn.primary {
+      width: 60px;
+      height: 60px;
+      background: var(--grad-gold);
+      border: none;
+      color: #1a0800;
+      font-size: 1.3rem;
+      box-shadow: var(--shadow-glow-gold);
+    }
+
+    .ctrl-btn.primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(244,168,50,0.5);
+      color: #1a0800;
+      background: var(--grad-gold);
+    }
+
+    .ctrl-btn.active {
+      background: rgba(244,168,50,0.15);
+      border-color: rgba(244,168,50,0.4);
+      color: var(--clr-gold);
+    }
+
+    /* SPEED CONTROL */
+    .player-speed {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .speed-label {
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+    }
+
+    .speed-options {
+      display: flex;
+      gap: 4px;
+    }
+
+    .speed-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .speed-btn.active {
+      background: rgba(244,168,50,0.15);
+      border-color: rgba(244,168,50,0.4);
+      color: var(--clr-gold);
+    }
+
+    /* LANGUAGE SELECTOR */
+    .language-select {
+      width: 100%;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--clr-text);
+      font-size: 0.875rem;
+      font-family: var(--font-body);
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition-fast);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f4a832' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    .language-select:focus { border-color: rgba(244,168,50,0.4); }
+
+    /* RIGHT COLUMN */
+    .guide-content { display: flex; flex-direction: column; gap: 24px; }
+
+    /* MONASTERY SELECTOR */
+    .monastery-selector {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 24px;
+      padding: 24px;
+    }
+
+    .monastery-selector h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .monastery-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .selector-card {
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .selector-card:hover {
+      border-color: rgba(244,168,50,0.4);
+      transform: translateY(-2px);
+    }
+
+    .selector-card.active {
+      border-color: var(--clr-gold);
+      box-shadow: 0 0 20px rgba(244,168,50,0.25);
+    }
+
+    .selector-card img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      display: block;
+      transition: transform var(--transition-med);
+    }
+
+    .selector-card:hover img { transform: scale(1.05); }
+
+    .selector-card-name {
+      padding: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-align: center;
+      background: var(--clr-bg-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .selector-card.active .selector-card-name { color: var(--clr-gold); }
+
+    /* TRANSCRIPT */
+    .transcript-card {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .transcript-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--clr-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .transcript-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .transcript-body {
+      padding: 24px;
+      max-height: 320px;
+      overflow-y: auto;
+      line-height: 1.85;
+      font-size: 0.95rem;
+      color: var(--clr-text-muted);
+    }
+
+    .transcript-body::-webkit-scrollbar { width: 4px; }
+    .transcript-body::-webkit-scrollbar-thumb { background: var(--clr-gold-dark); }
+
+    .transcript-highlight {
+      background: rgba(244,168,50,0.15);
+      color: var(--clr-gold);
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+
+    /* TOUR HIGHLIGHTS */
+    .highlights-card {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 24px;
+      padding: 24px;
+    }
+
+    .highlights-card h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .highlight-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .highlight-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .highlight-item:hover {
+      background: rgba(244,168,50,0.08);
+      border-color: rgba(244,168,50,0.3);
+    }
+
+    .highlight-icon { font-size: 1.2rem; }
+
+    .highlight-name {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .highlight-time {
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+    }
+
+    @media (max-width: 1024px) {
+      .guide-layout { grid-template-columns: 1fr; }
+      .guide-player { position: static; }
+      .monastery-selector-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .monastery-selector-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">🏯</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-name">Monastery 360</span>
+          <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="tour.html" class="nav-link">Virtual Tour</a>
+        <a href="monasteries.html" class="nav-link">Monasteries</a>
+        <a href="archive.html" class="nav-link">Archive</a>
+        <a href="calendar.html" class="nav-link">Calendar</a>
+        <a href="map.html" class="nav-link">Map</a>
+        <a href="guide.html" class="nav-link active nav-cta">🎙️ Audio Guide</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="guide-layout">
+
+      <!-- PLAYER (sticky left) -->
+      <div class="guide-player">
+        <div class="player-card animate-page">
+          <img id="player-img" src="assets/images/rumtek.png" alt="Monastery" class="player-monastery-img" />
+          <div class="player-body">
+            <p class="player-monastery-type" id="player-type">Kagyu · Est. 1740</p>
+            <h2 class="player-monastery-name" id="player-name">Rumtek Monastery</h2>
+            <p class="player-monastery-meta" id="player-meta">📍 East Sikkim · ⛰️ 1470m</p>
+
+            <!-- Waveform -->
+            <div class="player-waveform-wrap" id="waveform-wrap" aria-hidden="true">
+              <div class="waveform paused" id="waveform">
+                <div class="waveform-bar"></div><div class="waveform-bar"></div>
+                <div class="waveform-bar"></div><div class="waveform-bar"></div>
+                <div class="waveform-bar"></div><div class="waveform-bar"></div>
+                <div class="waveform-bar"></div><div class="waveform-bar"></div>
+                <div class="waveform-bar"></div><div class="waveform-bar"></div>
+                <div class="waveform-bar"></div><div class="waveform-bar"></div>
+              </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="player-progress">
+              <span class="progress-time" id="progress-current">0:00</span>
+              <div class="progress-track" id="progress-track" role="progressbar" aria-label="Audio progress">
+                <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+              </div>
+              <span class="progress-time" id="progress-total">0:00</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="player-controls">
+              <button class="ctrl-btn" id="btn-prev" aria-label="Previous monastery" data-tooltip="Previous">⏮</button>
+              <button class="ctrl-btn" id="btn-rewind" aria-label="Rewind 10 seconds" data-tooltip="−10s">⏪</button>
+              <button class="ctrl-btn primary" id="btn-play" aria-label="Play or pause audio">▶</button>
+              <button class="ctrl-btn" id="btn-forward" aria-label="Forward 10 seconds" data-tooltip="+10s">⏩</button>
+              <button class="ctrl-btn" id="btn-next" aria-label="Next monastery" data-tooltip="Next">⏭</button>
+            </div>
+
+            <!-- Speed -->
+            <div class="player-speed">
+              <span class="speed-label">Playback Speed</span>
+              <div class="speed-options" id="speed-options" role="group" aria-label="Playback speed">
+                <button class="speed-btn" data-speed="0.75">0.75×</button>
+                <button class="speed-btn active" data-speed="1">1×</button>
+                <button class="speed-btn" data-speed="1.25">1.25×</button>
+                <button class="speed-btn" data-speed="1.5">1.5×</button>
+              </div>
+            </div>
+
+            <!-- Language -->
+            <select class="language-select" id="lang-select" aria-label="Select language">
+              <option value="en-IN">🇮🇳 English (India)</option>
+              <option value="hi-IN">🇮🇳 Hindi (हिन्दी)</option>
+              <option value="ne-NP">🇳🇵 Nepali (नेपाली)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="guide-content">
+
+        <!-- Monastery Selector -->
+        <div class="monastery-selector reveal">
+          <h2>🏯 Select Monastery for Audio Guide</h2>
+          <div class="monastery-selector-grid" id="monastery-selector-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Transcript -->
+        <div class="transcript-card reveal delay-100">
+          <div class="transcript-header">
+            <h2 class="transcript-title">📜 Audio Transcript</h2>
+            <button class="btn btn-outline btn-sm" id="copy-transcript-btn" onclick="copyTranscript()">📋 Copy</button>
+          </div>
+          <div class="transcript-body" id="transcript-body" aria-live="polite">
+            <p style="color:var(--clr-text-faint);font-style:italic">Press Play to start the audio guide and see the transcript here...</p>
+          </div>
+        </div>
+
+        <!-- Audio Tour Highlights -->
+        <div class="highlights-card reveal delay-200">
+          <h2>🎧 Audio Tour Chapters</h2>
+          <div class="highlight-items" id="highlight-items">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><a href="index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">🏯</div><div class="nav-logo-text"><span class="nav-logo-name">Monastery 360</span><span class="nav-logo-tagline">Digital Heritage of Sikkim</span></div></a><p>Preserving the sacred heritage of Sikkim's monasteries.</p></div>
+        <div><p class="footer-col-title">Explore</p><div class="footer-links"><a href="tour.html" class="footer-link">Virtual Tours</a><a href="monasteries.html" class="footer-link">Monasteries</a></div></div>
+        <div><p class="footer-col-title">Resources</p><div class="footer-links"><a href="calendar.html" class="footer-link">Cultural Calendar</a><a href="guide.html" class="footer-link">Audio Guide</a></div></div>
+        <div><p class="footer-col-title">Districts</p><div class="footer-links"><a href="map.html" class="footer-link">East Sikkim</a><a href="map.html" class="footer-link">West Sikkim</a></div></div>
+      </div>
+      <div class="footer-bottom"><p>© 2025 Monastery 360. Built for Smart India Hackathon.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/guide.js"></script>
+</body>
+</html>

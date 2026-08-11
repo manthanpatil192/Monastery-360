@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monasteries Directory — Monastery 360</title>
+  <meta name="description" content="Browse all documented monasteries of Sikkim with detailed profiles, history, and virtual tour access." />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    .page-hero {
+      min-height: 320px;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 60px;
+      position: relative;
+      background: linear-gradient(135deg, #07070f 0%, #1a0a00 50%, #07070f 100%);
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('assets/images/hero.png') center/cover no-repeat;
+      opacity: 0.15;
+    }
+    .page-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, var(--clr-bg) 0%, transparent 60%);
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding-top: var(--nav-height);
+    }
+    .filter-bar {
+      background: var(--clr-bg-2);
+      border-bottom: 1px solid var(--clr-border);
+      padding: 20px 0;
+      position: sticky;
+      top: var(--nav-height);
+      z-index: 100;
+    }
+    .filter-bar-inner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      padding: 6px 16px;
+      border-radius: 100px;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .filter-chip.active, .filter-chip:hover {
+      background: rgba(244,168,50,0.12);
+      border-color: rgba(244,168,50,0.4);
+      color: var(--clr-gold);
+    }
+    .search-wrap {
+      margin-left: auto;
+      position: relative;
+    }
+    .search-input {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: 100px;
+      padding: 8px 18px 8px 38px;
+      color: var(--clr-text);
+      font-size: 0.875rem;
+      font-family: var(--font-body);
+      outline: none;
+      width: 240px;
+      transition: border-color var(--transition-fast), width var(--transition-med);
+    }
+    .search-input:focus {
+      border-color: rgba(244,168,50,0.4);
+      width: 280px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      opacity: 0.5;
+    }
+    .monasteries-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .monastery-profile-card {
+      background: var(--grad-card);
+      border: var(--glass-border);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all var(--transition-med);
+      cursor: pointer;
+    }
+    .monastery-profile-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-glow-soft), 0 0 0 1px rgba(244,168,50,0.2);
+      border-color: rgba(244,168,50,0.25);
+    }
+    .mpc-img-wrap { position: relative; overflow: hidden; }
+    .mpc-img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      transition: transform var(--transition-slow);
+      display: block;
+    }
+    .monastery-profile-card:hover .mpc-img { transform: scale(1.05); }
+    .mpc-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--clr-border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--clr-gold);
+    }
+    .mpc-year {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--clr-border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      color: var(--clr-text-muted);
+    }
+    .mpc-body { padding: 22px; }
+    .mpc-type { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--clr-gold); margin-bottom: 6px; }
+    .mpc-name { font-size: 1.3rem; font-weight: 700; color: var(--clr-heading); margin-bottom: 8px; }
+    .mpc-desc { font-size: 0.85rem; color: var(--clr-text-muted); line-height: 1.65; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .mpc-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .mpc-meta-item { font-size: 0.78rem; color: var(--clr-text-muted); display: flex; align-items: center; gap: 4px; }
+    .mpc-highlights {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .mpc-highlight {
+      background: rgba(244,168,50,0.08);
+      border: 1px solid rgba(244,168,50,0.2);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.72rem;
+      color: var(--clr-gold);
+    }
+    .mpc-footer {
+      border-top: 1px solid var(--clr-border);
+      padding-top: 16px;
+      display: flex;
+      gap: 10px;
+    }
+    .results-count {
+      font-size: 0.875rem;
+      color: var(--clr-text-muted);
+      margin-bottom: 24px;
+    }
+    .results-count span { color: var(--clr-gold); font-weight: 600; }
+    .no-results {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--clr-text-muted);
+      display: none;
+    }
+    .no-results h3 { font-size: 1.2rem; margin-bottom: 8px; color: var(--clr-heading); }
+    @media (max-width: 1024px) { .monasteries-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .monasteries-grid { grid-template-columns: 1fr; } .search-input { width: 160px; } .search-input:focus { width: 200px; } }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">🏯</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-name">Monastery 360</span>
+          <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="tour.html" class="nav-link">Virtual Tour</a>
+        <a href="monasteries.html" class="nav-link active">Monasteries</a>
+        <a href="archive.html" class="nav-link">Archive</a>
+        <a href="calendar.html" class="nav-link">Calendar</a>
+        <a href="map.html" class="nav-link">Map</a>
+        <a href="guide.html" class="nav-link nav-cta">🎙️ Audio Guide</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" aria-label="Page hero">
+    <div class="container page-hero-content animate-page">
+      <span class="section-label">Sacred Sites</span>
+      <h1 class="section-title" style="margin-top:8px">Monastery Directory</h1>
+      <p class="section-subtitle">Explore all documented monasteries of Sikkim — ancient sanctuaries of wisdom, art, and devotion.</p>
+    </div>
+  </header>
+
+  <div class="filter-bar" aria-label="Filters">
+    <div class="container">
+      <div class="filter-bar-inner">
+        <span class="filter-label">Filter:</span>
+        <div class="filter-chips" role="group" aria-label="Filter by category">
+          <button class="filter-chip active" data-filter="all" id="filter-all">All Monasteries</button>
+          <button class="filter-chip" data-filter="Nyingma" id="filter-nyingma">Nyingma</button>
+          <button class="filter-chip" data-filter="Kagyu" id="filter-kagyu">Kagyu</button>
+          <button class="filter-chip" data-filter="East Sikkim" id="filter-east">East Sikkim</button>
+          <button class="filter-chip" data-filter="West Sikkim" id="filter-west">West Sikkim</button>
+          <button class="filter-chip" data-filter="South Sikkim" id="filter-south">South Sikkim</button>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="monastery-search" class="search-input" placeholder="Search..." aria-label="Search monasteries" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section" aria-label="Monastery listings">
+    <div class="container">
+      <p class="results-count" id="results-count">Showing <span id="count-num">6</span> monasteries</p>
+      <div class="monasteries-grid" id="monasteries-grid"></div>
+      <div class="no-results" id="no-results">
+        <h3>No monasteries found</h3>
+        <p>Try a different search term or filter</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" style="display:inline-flex">
+            <div class="nav-logo-icon">🏯</div>
+            <div class="nav-logo-text">
+              <span class="nav-logo-name">Monastery 360</span>
+              <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+            </div>
+          </a>
+          <p>Preserving the sacred heritage of Sikkim's 200+ Buddhist monasteries through immersive digital experiences.</p>
+        </div>
+        <div><p class="footer-col-title">Explore</p><div class="footer-links"><a href="tour.html" class="footer-link">Virtual Tours</a><a href="monasteries.html" class="footer-link">Monasteries</a><a href="archive.html" class="footer-link">Digital Archive</a><a href="map.html" class="footer-link">Interactive Map</a></div></div>
+        <div><p class="footer-col-title">Resources</p><div class="footer-links"><a href="calendar.html" class="footer-link">Cultural Calendar</a><a href="guide.html" class="footer-link">Audio Guide</a></div></div>
+        <div><p class="footer-col-title">Districts</p><div class="footer-links"><a href="map.html" class="footer-link">East Sikkim</a><a href="map.html" class="footer-link">West Sikkim</a><a href="map.html" class="footer-link">North Sikkim</a><a href="map.html" class="footer-link">South Sikkim</a></div></div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 Monastery 360. Built for Smart India Hackathon. Preserving Sikkim's Heritage.</p>
+        <div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderMonasteries(MONASTERIES);
+      initFilters();
+    });
+
+    let activeFilter = 'all';
+    let searchQuery = '';
+
+    function renderMonasteries(data) {
+      const grid = document.getElementById('monasteries-grid');
+      const noResults = document.getElementById('no-results');
+      const countEl = document.getElementById('count-num');
+      grid.innerHTML = '';
+      if (!data.length) {
+        noResults.style.display = 'block';
+        countEl.textContent = '0';
+        return;
+      }
+      noResults.style.display = 'none';
+      countEl.textContent = data.length;
+      data.forEach((m, i) => {
+        const card = document.createElement('div');
+        card.className = 'monastery-profile-card reveal';
+        card.dataset.delay = i * 80;
+        card.id = m.id;
+        card.setAttribute('role', 'article');
+        card.setAttribute('aria-label', m.name);
+        const highlights = m.highlights.map(h => `<span class="mpc-highlight">${h}</span>`).join('');
+        card.innerHTML = `
+          <div class="mpc-img-wrap">
+            <img src="${m.image}" alt="${m.name}" class="mpc-img" loading="lazy" />
+            <span class="mpc-badge">${m.type}</span>
+            <span class="mpc-year">Est. ${m.year}</span>
+          </div>
+          <div class="mpc-body">
+            <div class="mpc-type">${m.district}</div>
+            <h2 class="mpc-name">${m.name}</h2>
+            <p class="mpc-desc">${m.description}</p>
+            <div class="mpc-meta">
+              <span class="mpc-meta-item">📍 ${m.district}</span>
+              <span class="mpc-meta-item">⛰️ ${m.altitude}</span>
+              <span class="mpc-meta-item">🎭 ${m.festivals.length} Festivals</span>
+            </div>
+            <div class="mpc-highlights">${highlights}</div>
+            <div class="mpc-footer">
+              <a href="tour.html" class="btn btn-primary btn-sm">🌐 Virtual Tour</a>
+              <a href="map.html" class="btn btn-outline btn-sm">🗺️ View on Map</a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      if (typeof initScrollReveal === 'function') initScrollReveal();
+    }
+
+    function filterAndSearch() {
+      let filtered = MONASTERIES;
+      if (activeFilter !== 'all') {
+        filtered = filtered.filter(m => m.type === activeFilter || m.district === activeFilter);
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(m => m.name.toLowerCase().includes(q) || m.district.toLowerCase().includes(q) || m.type.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+      }
+      renderMonasteries(filtered);
+    }
+
+    function initFilters() {
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilter = chip.dataset.filter;
+          filterAndSearch();
+        });
+      });
+      document.getElementById('monastery-search').addEventListener('input', e => {
+        searchQuery = e.target.value;
+        filterAndSearch();
+      });
+    }
+  </script>
+</body>
+</html>

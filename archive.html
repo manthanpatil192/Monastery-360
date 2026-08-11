@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Archive — Monastery 360</title>
+  <meta name="description" content="Browse digitized manuscripts, ancient murals, historical photographs, and sacred documents from Sikkim's monasteries." />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <style>
+    .page-hero {
+      min-height: 280px;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 60px;
+      position: relative;
+      overflow: hidden;
+      background: #07070f;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('assets/images/interior.png') center/cover no-repeat;
+      opacity: 0.15;
+    }
+    .page-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, var(--clr-bg) 0%, transparent 60%);
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding-top: var(--nav-height);
+    }
+
+    /* TABS */
+    .archive-tabs {
+      background: var(--clr-bg-2);
+      border-bottom: 1px solid var(--clr-border);
+      position: sticky;
+      top: var(--nav-height);
+      z-index: 100;
+      padding: 0;
+    }
+
+    .archive-tabs-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .archive-tab-list {
+      display: flex;
+      gap: 4px;
+    }
+
+    .archive-tab {
+      padding: 16px 24px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+    }
+
+    .archive-tab:hover { color: var(--clr-heading); }
+
+    .archive-tab.active {
+      color: var(--clr-gold);
+      border-bottom-color: var(--clr-gold);
+    }
+
+    .archive-search {
+      position: relative;
+      padding: 8px 0;
+    }
+
+    .archive-search input {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: 100px;
+      padding: 8px 18px 8px 36px;
+      color: var(--clr-text);
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      outline: none;
+      width: 240px;
+      transition: border-color var(--transition-fast);
+    }
+
+    .archive-search input:focus { border-color: rgba(244,168,50,0.4); }
+
+    .archive-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      opacity: 0.5;
+    }
+
+    /* ARCHIVE GRID - Masonry style */
+    .archive-grid {
+      columns: 3;
+      column-gap: 20px;
+    }
+
+    .archive-item {
+      break-inside: avoid;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--grad-card);
+      border: var(--glass-border);
+      cursor: pointer;
+      transition: all var(--transition-med);
+      position: relative;
+    }
+
+    .archive-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glow-soft);
+      border-color: rgba(244,168,50,0.3);
+    }
+
+    .archive-item-img {
+      width: 100%;
+      display: block;
+      transition: transform var(--transition-slow);
+    }
+
+    .archive-item:hover .archive-item-img { transform: scale(1.03); }
+
+    .archive-item-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(7,7,15,0.9) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity var(--transition-med);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px;
+    }
+
+    .archive-item:hover .archive-item-overlay { opacity: 1; }
+
+    .archive-item-info {
+      padding: 16px;
+    }
+
+    .archive-item-category {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--clr-gold);
+      margin-bottom: 4px;
+    }
+
+    .archive-item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--clr-heading);
+      margin-bottom: 4px;
+    }
+
+    .archive-item-meta {
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+    }
+
+    .archive-item-view-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(244,168,50,0.9);
+      color: #1a0800;
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: all var(--transition-med);
+    }
+
+    .archive-item:hover .archive-item-view-btn {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* LIGHTBOX */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(20px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-med);
+    }
+
+    .lightbox.open { opacity: 1; pointer-events: all; }
+
+    .lightbox-inner {
+      display: flex;
+      gap: 24px;
+      max-width: 1000px;
+      width: 100%;
+      max-height: 85vh;
+      align-items: flex-start;
+    }
+
+    .lightbox-img-wrap {
+      flex: 1;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .lightbox-img {
+      width: 100%;
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 20px;
+    }
+
+    .lightbox-info {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--clr-bg-2);
+      border: var(--glass-border);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      font-size: 1.2rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+
+    .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      font-size: 1.3rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+
+    .lightbox-nav:hover { background: rgba(255,255,255,0.2); }
+    .lightbox-prev { left: 20px; }
+    .lightbox-next { right: 20px; }
+
+    @media (max-width: 1024px) { .archive-grid { columns: 2; } }
+    @media (max-width: 640px) {
+      .archive-grid { columns: 1; }
+      .archive-tab { padding: 12px 14px; font-size: 0.8rem; }
+      .lightbox-inner { flex-direction: column; }
+      .lightbox-info { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">🏯</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-name">Monastery 360</span>
+          <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="tour.html" class="nav-link">Virtual Tour</a>
+        <a href="monasteries.html" class="nav-link">Monasteries</a>
+        <a href="archive.html" class="nav-link active">Archive</a>
+        <a href="calendar.html" class="nav-link">Calendar</a>
+        <a href="map.html" class="nav-link">Map</a>
+        <a href="guide.html" class="nav-link nav-cta">🎙️ Audio Guide</a>
+      </div>
+      <button class="nav-hamburger" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" aria-label="Archive hero">
+    <div class="container page-hero-content animate-page">
+      <span class="section-label">Cultural Preservation</span>
+      <h1 class="section-title" style="margin-top:8px">Digital Archive</h1>
+      <p class="section-subtitle">Rare manuscripts, sacred murals, and historical artifacts — digitized for eternity.</p>
+    </div>
+  </header>
+
+  <div class="archive-tabs" aria-label="Archive categories">
+    <div class="container">
+      <div class="archive-tabs-inner">
+        <div class="archive-tab-list" role="tablist">
+          <button class="archive-tab active" data-tab="all" role="tab" aria-selected="true" id="tab-all">📂 All Items</button>
+          <button class="archive-tab" data-tab="manuscript" role="tab" aria-selected="false" id="tab-manuscripts">📜 Manuscripts</button>
+          <button class="archive-tab" data-tab="mural" role="tab" aria-selected="false" id="tab-murals">🎨 Murals</button>
+          <button class="archive-tab" data-tab="photo" role="tab" aria-selected="false" id="tab-photos">📷 Photographs</button>
+          <button class="archive-tab" data-tab="artifact" role="tab" aria-selected="false" id="tab-artifacts">🏺 Artifacts</button>
+        </div>
+        <div class="archive-search">
+          <span class="archive-search-icon">🔍</span>
+          <input type="text" id="archive-search" placeholder="Search archive..." aria-label="Search archive" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section" aria-label="Archive gallery">
+    <div class="container">
+      <div class="archive-grid" id="archive-grid" role="list"></div>
+    </div>
+  </section>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Image viewer" aria-modal="true">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close lightbox">✕</button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous item">‹</button>
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next item">›</button>
+    <div class="lightbox-inner">
+      <div class="lightbox-img-wrap">
+        <img src="" alt="" class="lightbox-img" id="lightbox-img" />
+      </div>
+      <div class="lightbox-info">
+        <p class="card-label" id="lb-category">Category</p>
+        <h2 class="card-title" id="lb-title" style="font-size:1.4rem;margin-bottom:12px">Title</h2>
+        <p class="card-description" id="lb-desc" style="margin-bottom:20px">Description</p>
+        <div id="lb-meta" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div style="margin-top:24px;display:flex;gap:10px">
+          <button class="btn btn-primary btn-sm" id="lb-download" onclick="showToast('Download started!','success')">⬇️ Download</button>
+          <button class="btn btn-outline btn-sm" onclick="showToast('Link copied!','success')">🔗 Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" style="display:inline-flex"><div class="nav-logo-icon">🏯</div><div class="nav-logo-text"><span class="nav-logo-name">Monastery 360</span><span class="nav-logo-tagline">Digital Heritage of Sikkim</span></div></a>
+          <p>Preserving the sacred heritage of Sikkim's monasteries through immersive digital experiences.</p>
+        </div>
+        <div><p class="footer-col-title">Explore</p><div class="footer-links"><a href="tour.html" class="footer-link">Virtual Tours</a><a href="monasteries.html" class="footer-link">Monasteries</a><a href="archive.html" class="footer-link">Digital Archive</a></div></div>
+        <div><p class="footer-col-title">Resources</p><div class="footer-links"><a href="calendar.html" class="footer-link">Cultural Calendar</a><a href="guide.html" class="footer-link">Audio Guide</a></div></div>
+        <div><p class="footer-col-title">Districts</p><div class="footer-links"><a href="map.html" class="footer-link">East Sikkim</a><a href="map.html" class="footer-link">West Sikkim</a></div></div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 Monastery 360. Built for Smart India Hackathon.</p>
+        <div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/archive.js"></script>
+</body>
+</html>
