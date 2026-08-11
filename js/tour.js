@@ -1,5 +1,5 @@
 // =============================================
-// TOUR.JS — Google VR Goggle System (100% Unique Panoramas per Monastery)
+// TOUR.JS — Google VR System Engine (Laptop Mouse Cursor Camera Tracking)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -65,6 +65,7 @@ const SPATIAL_PINS = {
 let scene, camera, renderer, stereoEffect, sphereMesh, standingFeetGroup;
 let isCardboardMode = false;
 let isGyroMode = false;
+let isCursorLookMode = true; // Enabled by default!
 
 let currentMonastery = null;
 let currentScene = null;
@@ -93,6 +94,7 @@ function initGoogleVRGoggle() {
   initSpatialKeyboard();
   initVRControls();
   initGyroscopeSensor();
+  initMouseCursorTracking();
   initSearch();
 
   window.addEventListener('resize', onWindowResize);
@@ -170,6 +172,25 @@ function createStandingPersonMesh() {
 
   standingFeetGroup.position.set(0, 0, 0);
   scene.add(standingFeetGroup);
+}
+
+// -------------------------------------------------------------
+// LAPTOP MOUSE CURSOR CAMERA TRACKING
+// -------------------------------------------------------------
+function initMouseCursorTracking() {
+  const viewer = document.getElementById('tour-viewer');
+  if (!viewer) return;
+
+  viewer.addEventListener('mousemove', (e) => {
+    if (!isCursorLookMode || isUserInteracting) return;
+    const rect = viewer.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const relY = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+
+    // Smooth continuous camera panning towards laptop cursor direction
+    targetLon += relX * 2.2;
+    targetLat = Math.max(-75, Math.min(75, targetLat - relY * 1.5));
+  });
 }
 
 // -------------------------------------------------------------
@@ -464,6 +485,13 @@ function initVRControls() {
       showToast('Exited Google Cardboard Mode', 'info', 1200);
     }
     onWindowResize();
+  });
+
+  const cursorBtn = document.getElementById('ctrl-cursor');
+  cursorBtn?.addEventListener('click', () => {
+    isCursorLookMode = !isCursorLookMode;
+    cursorBtn.classList.toggle('active', isCursorLookMode);
+    showToast(isCursorLookMode ? '🖱️ Cursor Camera Tracking Active' : 'Drag Pan Mode Active', 'info', 1500);
   });
 
   const gyroBtn = document.getElementById('ctrl-gyro');

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>360° Google VR Goggle Experience — Monastery 360</title>
-  <meta name="description" content="Official Google Maps & Google VR Style 360° Photo Sphere Experience with unique panoramic views for all Sikkim monasteries." />
+  <meta name="description" content="Official Google Maps & Google VR Style 360° Photo Sphere Experience with mouse cursor camera tracking." />
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/animations.css" />
@@ -131,12 +131,10 @@
       position: relative;
       overflow: hidden;
       background: #000;
-      cursor: grab;
+      cursor: default;
       width: 100%;
       height: 100%;
     }
-
-    .tour-viewer:active { cursor: grabbing; }
 
     #webgl-canvas {
       width: 100%;
@@ -190,7 +188,7 @@
       color: var(--gvr-dark);
     }
 
-    /* GOOGLE STREET VIEW CAROUSEL STRIP (BOTTOM SCENE SELECTOR) */
+    /* GOOGLE STREET VIEW CAROUSEL STRIP */
     .gvr-carousel-strip {
       position: absolute;
       bottom: 85px;
@@ -549,6 +547,7 @@
       <!-- GOOGLE VR CONTROL CAPSULE BAR -->
       <div class="gvr-control-bar" role="toolbar">
         <button class="gvr-btn cardboard-btn" id="ctrl-cardboard" title="Google Cardboard VR 3D Mode">🥽</button>
+        <button class="gvr-btn active" id="ctrl-cursor" title="Mouse Cursor Camera Tracking (Camera moves with laptop mouse cursor)">🖱️</button>
         <button class="gvr-btn" id="ctrl-gyro" title="Gyroscope / Device Motion Head Tracking">📱</button>
         <div class="tour-divider"></div>
         <button class="gvr-btn" id="ctrl-walk" title="Auto Walk Mode">🚶‍♂️</button>
