@@ -1,25 +1,25 @@
 // =============================================
-// TOUR.JS — 3D VR Ground Standing Engine (First-Person Standing Perspective)
+// TOUR.JS — 3D VR Ground Standing Engine (Seamless 360 Photorealistic Himalayan View)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
   initVRGroundTour();
 });
 
-// Scene definitions with 8K photorealistic 360 Photo Spheres
+// Scene definitions with photorealistic 8K seamless 360 Photo Spheres
 const SCENES = {
   rumtek: [
     { id: 'courtyard', name: '🏰 Main Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
     { id: 'shrine', name: '🪔 Shrine Interior', bgImg: 'assets/images/pano_shrine_interior.png' },
-    { id: 'pemayangtse', name: '🌲 Pemayangtse Ridge', bgImg: 'assets/images/pano_pemayangtse.png' },
-    { id: 'tashiding', name: '⛰️ Tashiding Stupa', bgImg: 'assets/images/pano_tashiding.png' }
+    { id: 'pemayangtse', name: '⛰️ Majestic Himalayas', bgImg: 'assets/images/pano_himalayas.png' },
+    { id: 'tashiding', name: '☸️ Tashiding Stupa', bgImg: 'assets/images/pano_tashiding.png' }
   ],
   pemayangtse: [
-    { id: 'main', name: '🌲 Monastery Complex', bgImg: 'assets/images/pano_pemayangtse.png' },
+    { id: 'main', name: '⛰️ Himalayan Ridge', bgImg: 'assets/images/pano_himalayas.png' },
     { id: 'shrine', name: '🪔 Sacred Shrine', bgImg: 'assets/images/pano_shrine_interior.png' }
   ],
   tashiding: [
-    { id: 'stupa', name: '⛰️ Sacred Chortens', bgImg: 'assets/images/pano_tashiding.png' },
+    { id: 'stupa', name: '☸️ Sacred Chortens', bgImg: 'assets/images/pano_tashiding.png' },
     { id: 'courtyard', name: '🏰 Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' }
   ],
   enchey: [
@@ -89,7 +89,7 @@ function initVRGroundTour() {
 }
 
 // -------------------------------------------------------------
-// THREE.JS FIRST-PERSON STANDING ON GROUND ENGINE
+// THREE.JS SEAMLESS 360 SPHERICAL ENGINE
 // -------------------------------------------------------------
 function initThreeJS() {
   const container = document.getElementById('tour-viewer');
@@ -103,8 +103,8 @@ function initThreeJS() {
   camera.position.set(0, EYE_HEIGHT, 0);
   camera.target = new THREE.Vector3(0, EYE_HEIGHT, -1);
 
-  // 360 Photo Sphere Geometry
-  const geometry = new THREE.SphereGeometry(500, 60, 40);
+  // High-segment inner sphere geometry (128x64) for smooth seamless texture mapping
+  const geometry = new THREE.SphereGeometry(500, 128, 64);
   geometry.scale(-1, 1, 1);
 
   const material = new THREE.MeshBasicMaterial({
@@ -115,12 +115,14 @@ function initThreeJS() {
 
   sphereMesh = new THREE.Mesh(geometry, material);
   sphereMesh.position.set(0, EYE_HEIGHT, 0);
+  // Rotate initial sphere y-axis to hide seam behind camera start angle
+  sphereMesh.rotation.y = Math.PI / 2;
   scene.add(sphereMesh);
 
   // Add 3D First-Person Standing Feet & Ground Shadow Mesh
   createStandingPersonMesh();
 
-  // WebGL Renderer
+  // WebGL Renderer with High Precision & Smooth Filtering
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(container.clientWidth, container.clientHeight);
@@ -154,16 +156,14 @@ function createStandingPersonMesh() {
   shadowMesh.position.set(0, 0.01, 0);
   standingFeetGroup.add(shadowMesh);
 
-  // Left & Right Footwear / Boots Standing Visual (Visible when looking down)
+  // Left & Right Boots Standing Visual
   const bootMat = new THREE.MeshBasicMaterial({ color: 0x1f1915 });
   const bootGeo = new THREE.BoxGeometry(0.16, 0.1, 0.34);
 
-  // Left Foot
   const leftFoot = new THREE.Mesh(bootGeo, bootMat);
   leftFoot.position.set(-0.2, 0.05, 0.1);
   standingFeetGroup.add(leftFoot);
 
-  // Right Foot
   const rightFoot = new THREE.Mesh(bootGeo, bootMat);
   rightFoot.position.set(0.2, 0.05, 0.1);
   standingFeetGroup.add(rightFoot);
@@ -173,7 +173,7 @@ function createStandingPersonMesh() {
 }
 
 // -------------------------------------------------------------
-// LOAD MONASTERY & PHOTO SPHERE TEXTURE
+// LOAD MONASTERY & SEAMLESS PHOTO SPHERE TEXTURE
 // -------------------------------------------------------------
 function renderMonasteryList() {
   const list = document.getElementById('monastery-list');
@@ -233,6 +233,13 @@ function loadScene(sc) {
   currentScene = sc;
 
   textureLoader.load(sc.bgImg, (texture) => {
+    // Configure texture mapping to eliminate vertical seam line
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+
     sphereMesh.material.map = texture;
     sphereMesh.material.needsUpdate = true;
     showToast(`Standing on ground at ${sc.name}`, 'info', 1200);
@@ -242,7 +249,7 @@ function loadScene(sc) {
   const pins = SPATIAL_PINS[key] || generateDefaultPins(currentMonastery, sc);
   renderSpatialPins(pins);
 
-  // Reset ground position to standing height
+  // Reset ground position
   camera.position.set(0, EYE_HEIGHT, 0);
   if (standingFeetGroup) standingFeetGroup.position.set(0, 0, 0);
 
@@ -365,11 +372,9 @@ function stepForward() {
   dir.y = 0; // Strictly on ground floor
   dir.normalize();
 
-  // Move camera forward on ground
   camera.position.addScaledVector(dir, 1.2);
   camera.position.y = EYE_HEIGHT + Math.sin(walkStepCount * 0.8) * 0.06;
 
-  // Move feet & photo sphere mesh along ground with player
   if (standingFeetGroup) standingFeetGroup.position.set(camera.position.x, 0, camera.position.z);
   if (sphereMesh) sphereMesh.position.set(camera.position.x, EYE_HEIGHT, camera.position.z);
 
