@@ -3,153 +3,131 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° Virtual Tour — Monastery 360</title>
-  <meta name="description" content="Explore Sikkim's monasteries through immersive 360° virtual tours with interactive hotspots and historical details." />
+  <title>360° Spatial Virtual Tour — VisionOS Experience — Monastery 360</title>
+  <meta name="description" content="Immersive Apple VisionOS style spatial virtual tour with real-time 3D walking motion, spatial audio, and interactive waypoints." />
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/animations.css" />
   <style>
-    /* ===== TOUR PAGE SPECIFIC ===== */
+    /* ===== APPLE VISION OS SPATIAL STYLES ===== */
+    :root {
+      --spatial-glass: rgba(20, 20, 35, 0.45);
+      --spatial-border: rgba(255, 255, 255, 0.18);
+      --spatial-glow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    }
+
+    body {
+      user-select: none;
+      background: #040409;
+    }
+
     .tour-layout {
       display: grid;
-      grid-template-columns: 300px 1fr;
+      grid-template-columns: 320px 1fr;
       height: calc(100vh - var(--nav-height));
       margin-top: var(--nav-height);
       overflow: hidden;
+      perspective: 1200px;
     }
 
-    /* SIDEBAR */
+    /* SIDEBAR - VISION OS FLOATING PANEL */
     .tour-sidebar {
-      background: var(--clr-bg-2);
-      border-right: 1px solid var(--clr-border);
+      background: var(--spatial-glass);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border-right: 1px solid var(--spatial-border);
+      box-shadow: var(--spatial-glow);
       overflow-y: auto;
-      padding: 0;
       display: flex;
       flex-direction: column;
+      z-index: 100;
+      transition: transform 0.3s ease;
     }
-
-    .tour-sidebar::-webkit-scrollbar { width: 4px; }
-    .tour-sidebar::-webkit-scrollbar-thumb { background: var(--clr-gold-dark); }
 
     .sidebar-header {
       padding: 24px;
-      border-bottom: 1px solid var(--clr-border);
-      background: var(--clr-bg-3);
+      border-bottom: 1px solid var(--spatial-border);
+      background: rgba(255, 255, 255, 0.03);
       position: sticky;
       top: 0;
       z-index: 10;
     }
 
     .sidebar-header h2 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .sidebar-search {
-      position: relative;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--clr-gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .sidebar-search input {
       width: 100%;
-      background: var(--clr-surface);
-      border: 1px solid var(--clr-border);
-      border-radius: 10px;
-      padding: 9px 14px 9px 36px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--spatial-border);
+      border-radius: 12px;
+      padding: 10px 14px 10px 38px;
       color: var(--clr-text);
       font-size: 0.85rem;
-      font-family: var(--font-body);
       outline: none;
-      transition: border-color var(--transition-fast);
+      transition: all 0.25s ease;
     }
 
     .sidebar-search input:focus {
-      border-color: rgba(244, 168, 50, 0.4);
-    }
-
-    .sidebar-search-icon {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.9rem;
-      opacity: 0.5;
-    }
-
-    .monastery-list {
-      padding: 12px;
-      flex: 1;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--clr-gold);
+      box-shadow: 0 0 15px rgba(244, 168, 50, 0.25);
     }
 
     .monastery-list-item {
       display: flex;
-      gap: 12px;
-      padding: 12px;
-      border-radius: 12px;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 16px;
       cursor: pointer;
-      transition: all var(--transition-fast);
+      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
       border: 1px solid transparent;
       margin-bottom: 6px;
+      position: relative;
+      overflow: hidden;
     }
 
     .monastery-list-item:hover {
-      background: var(--clr-surface);
-      border-color: var(--clr-border);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: scale(1.02) translateX(4px);
     }
 
     .monastery-list-item.active {
-      background: rgba(244, 168, 50, 0.08);
-      border-color: rgba(244, 168, 50, 0.3);
+      background: rgba(244, 168, 50, 0.15);
+      border-color: rgba(244, 168, 50, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     }
 
-    .monastery-list-thumb {
-      width: 56px;
-      height: 56px;
-      border-radius: 10px;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-
-    .monastery-list-info { flex: 1; min-width: 0; }
-
-    .monastery-list-name {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--clr-heading);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 3px;
-    }
-
-    .monastery-list-meta {
-      font-size: 0.75rem;
-      color: var(--clr-text-muted);
-    }
-
-    .monastery-list-badge {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--clr-gold);
-      margin-top: 4px;
-      flex-shrink: 0;
-      display: none;
-    }
-
-    .monastery-list-item.active .monastery-list-badge { display: block; }
-
-    /* TOUR VIEWER */
+    /* TOUR VIEWER - 3D SPATIAL CANVAS */
     .tour-viewer {
       position: relative;
       overflow: hidden;
       background: #000;
-      cursor: grab;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      cursor: default;
     }
 
-    .tour-viewer:active { cursor: grabbing; }
+    /* Spatial Canvas Container with 3D Motion */
+    .panorama-stage {
+      position: absolute;
+      inset: -5%;
+      width: 110%;
+      height: 110%;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform 0.1s ease-out;
+    }
 
-    /* 360 panorama */
     .panorama-canvas {
       position: absolute;
       inset: 0;
@@ -157,351 +135,346 @@
       background-position: center;
       width: 100%;
       height: 100%;
-      transition: background-image 0.5s ease;
-      user-select: none;
+      transition: background-image 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+      will-change: transform, filter;
+    }
+
+    /* Walk Motion Animation Layer */
+    .panorama-stage.walking {
+      animation: spatialWalk 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes spatialWalk {
+      0% { transform: scale(1) translateY(0px) rotateZ(0deg); }
+      50% { transform: scale(1.02) translateY(-8px) rotateZ(0.5deg); }
+      100% { transform: scale(1.04) translateY(4px) rotateZ(-0.5deg); }
+    }
+
+    .panorama-stage.stepping-forward {
+      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), filter 1.2s ease;
+      transform: scale(1.4) translateZ(300px);
+      filter: blur(8px) brightness(1.2);
     }
 
     .panorama-overlay {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.3) 100%);
+      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6) 100%);
       pointer-events: none;
     }
 
-    /* HOTSPOTS */
-    .hotspot {
-      position: absolute;
-      cursor: pointer;
-      z-index: 10;
-      transform: translate(-50%, -50%);
-    }
-
-    .hotspot-btn {
-      width: 48px;
-      height: 48px;
-      background: rgba(244, 168, 50, 0.2);
-      border: 2px solid rgba(244, 168, 50, 0.8);
+    /* VISION OS SPATIAL RETICLE / CURSOR */
+    .spatial-reticle {
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.7);
       border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%) scale(1);
+      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      backdrop-filter: blur(10px);
-      transition: all var(--transition-fast);
-      position: relative;
     }
 
-    .hotspot-btn::before {
+    .spatial-reticle::after {
       content: '';
-      position: absolute;
-      inset: -4px;
-      border: 2px solid rgba(244, 168, 50, 0.4);
+      width: 6px;
+      height: 6px;
+      background: var(--clr-gold);
       border-radius: 50%;
-      animation: hotspotPing 1.5s ease-out infinite;
+      box-shadow: 0 0 8px var(--clr-gold);
     }
 
-    .hotspot:hover .hotspot-btn {
-      background: rgba(244, 168, 50, 0.5);
-      transform: scale(1.15);
+    .spatial-reticle.hovering {
+      transform: translate(-50%, -50%) scale(1.8);
+      border-color: var(--clr-gold);
+      background: rgba(244, 168, 50, 0.2);
     }
 
-    .hotspot-label {
+    .spatial-reticle.pinching {
+      transform: translate(-50%, -50%) scale(0.7);
+      background: var(--clr-gold);
+    }
+
+    /* WAYPOINT MARKERS (WALK TO LOCATION) */
+    .waypoint-marker {
       position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--clr-border);
-      border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: var(--clr-text);
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity var(--transition-fast);
-      pointer-events: none;
-    }
-
-    .hotspot:hover .hotspot-label { opacity: 1; }
-
-    /* INFO PANEL */
-    .tour-info-panel {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 320px;
-      z-index: 20;
-      transform: translateX(120%);
-      transition: transform var(--transition-med);
-    }
-
-    .tour-info-panel.open { transform: translateX(0); }
-
-    .info-panel-card {
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-blur);
-      border: var(--glass-border);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: var(--glass-shadow);
-    }
-
-    .info-panel-img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-    }
-
-    .info-panel-content {
-      padding: 20px;
-    }
-
-    .info-panel-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 32px;
-      height: 32px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      z-index: 5;
-    }
-
-    /* TOUR CONTROLS BAR */
-    .tour-controls {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .tour-controls-bar {
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-blur);
-      border: var(--glass-border);
-      border-radius: 100px;
-      padding: 8px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: var(--glass-shadow);
-    }
-
-    .tour-control-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--clr-surface);
-      border: 1px solid var(--clr-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--clr-text);
-      font-size: 1.1rem;
-      transition: all var(--transition-fast);
-    }
-
-    .tour-control-btn:hover {
-      background: rgba(244, 168, 50, 0.15);
-      border-color: rgba(244, 168, 50, 0.4);
-      color: var(--clr-gold);
-    }
-
-    .tour-divider {
-      width: 1px;
-      height: 28px;
-      background: var(--clr-border);
-    }
-
-    /* SCENE TABS */
-    .scene-tabs {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .scene-tab {
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--clr-border);
-      border-radius: 10px;
-      padding: 8px 14px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--clr-text-muted);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      white-space: nowrap;
-    }
-
-    .scene-tab.active, .scene-tab:hover {
-      background: rgba(244, 168, 50, 0.15);
-      border-color: rgba(244, 168, 50, 0.4);
-      color: var(--clr-gold);
-    }
-
-    /* MONASTERY HEADER OVERLAY */
-    .monastery-header-overlay {
-      position: absolute;
-      bottom: 80px;
-      left: 20px;
+      transform: translate(-50%, -50%);
       z-index: 15;
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      border: var(--glass-border);
-      border-radius: 16px;
-      padding: 16px 20px;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .monastery-header-name {
-      font-size: 1.4rem;
+    .waypoint-badge {
+      background: rgba(15, 15, 25, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(244, 168, 50, 0.6);
+      border-radius: 30px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(244, 168, 50, 0.3);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .waypoint-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--grad-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: #1a0800;
+      box-shadow: 0 0 10px rgba(244, 168, 50, 0.8);
+      animation: pulseGlow 2s infinite;
+    }
+
+    .waypoint-marker:hover {
+      transform: translate(-50%, -50%) scale(1.15) translateZ(20px);
+    }
+
+    .waypoint-marker:hover .waypoint-badge {
+      background: rgba(244, 168, 50, 0.25);
+      border-color: #fff;
+      box-shadow: 0 15px 40px rgba(244, 168, 50, 0.5);
+    }
+
+    /* VISION OS FLOATING HEADS-UP DISPLAY (HUD) */
+    .hud-header {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: var(--spatial-glass);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 1px solid var(--spatial-border);
+      border-radius: 100px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--spatial-glow);
+    }
+
+    .hud-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
       font-weight: 700;
       color: var(--clr-heading);
+      letter-spacing: 0.05em;
+    }
+
+    .hud-tag {
+      background: rgba(244, 168, 50, 0.2);
+      border: 1px solid rgba(244, 168, 50, 0.4);
+      color: var(--clr-gold);
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* WALKING MOVEMENT CONTROL D-PAD */
+    .walk-controls-overlay {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      z-index: 30;
+      background: var(--spatial-glass);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--spatial-border);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: var(--spatial-glow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .walk-dpad-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--clr-gold);
       margin-bottom: 4px;
     }
 
-    .monastery-header-meta {
-      font-size: 0.8rem;
-      color: var(--clr-text-muted);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* FULLSCREEN */
-    .tour-viewer:fullscreen {
-      background: #000;
-    }
-
-    /* COMPASS */
-    .compass {
-      position: absolute;
-      top: 20px;
-      right: 360px;
-      width: 60px;
-      height: 60px;
-      z-index: 20;
-    }
-
-    .compass-ring {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--clr-border);
+    .walk-btn {
+      width: 48px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--spatial-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1.1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .compass-needle {
-      position: absolute;
-      width: 3px;
-      height: 22px;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -100%) rotate(0deg);
-      transform-origin: bottom center;
-      transition: transform 0.3s ease;
+    .walk-btn:hover {
+      background: rgba(244, 168, 50, 0.25);
+      border-color: var(--clr-gold);
+      transform: scale(1.08);
     }
 
-    .compass-north { background: var(--clr-gold); border-radius: 2px 2px 0 0; height: 12px; }
-    .compass-south { background: var(--clr-text-muted); border-radius: 0 0 2px 2px; height: 10px; }
+    .walk-btn:active {
+      transform: scale(0.95);
+    }
 
-    .compass-n-label {
+    .walk-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* VISION OS CURVED BOTTOM CONTROLS BAR */
+    .spatial-control-bar {
       position: absolute;
-      top: 2px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 0.65rem;
+      z-index: 30;
+      background: var(--spatial-glass);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid var(--spatial-border);
+      border-radius: 100px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--spatial-glow);
+    }
+
+    .spatial-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--spatial-border);
+      color: #fff;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .spatial-btn:hover {
+      background: rgba(244, 168, 50, 0.3);
+      border-color: var(--clr-gold);
+      transform: scale(1.12);
+      box-shadow: 0 0 20px rgba(244, 168, 50, 0.4);
+    }
+
+    .spatial-btn.active {
+      background: var(--grad-gold);
+      color: #1a0800;
+      border-color: #fff;
+      box-shadow: 0 0 25px rgba(244, 168, 50, 0.6);
+    }
+
+    /* SPATIAL GLASS DIALOG / INFO PANEL */
+    .spatial-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      width: 420px;
+      max-width: 90%;
+      background: var(--spatial-glass);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border: 1px solid var(--spatial-border);
+      border-radius: 28px;
+      box-shadow: var(--spatial-glow), 0 30px 80px rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+    }
+
+    .spatial-modal.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .spatial-modal-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .spatial-modal-body {
+      padding: 24px;
+    }
+
+    .spatial-modal-title {
+      font-size: 1.4rem;
       font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .spatial-modal-desc {
+      font-size: 0.9rem;
+      color: var(--clr-text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    /* AMBIENT SOUND INDICATOR */
+    .sound-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
       color: var(--clr-gold);
     }
 
-    /* DRAG HINT */
-    .drag-hint {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 5;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      opacity: 1;
-      transition: opacity 0.5s ease;
+    .sound-pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--clr-gold);
+      border-radius: 50%;
+      animation: pulseGlow 1.5s infinite;
     }
 
-    .drag-hint.hidden { opacity: 0; }
-
-    .drag-hint-icon {
-      font-size: 3rem;
-      animation: float 2s ease-in-out infinite;
-    }
-
-    .drag-hint-text {
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--clr-border);
-      border-radius: 100px;
-      padding: 8px 20px;
-      font-size: 0.8rem;
-      color: var(--clr-text-muted);
-    }
-
-    /* MOBILE */
     @media (max-width: 768px) {
-      .tour-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        height: auto;
-        min-height: 100vh;
-      }
-
-      .tour-sidebar {
-        height: auto;
-        max-height: 260px;
-        border-right: none;
-        border-bottom: 1px solid var(--clr-border);
-      }
-
-      .tour-viewer {
-        height: 60vh;
-        min-height: 400px;
-      }
-
-      .tour-info-panel {
-        width: calc(100% - 40px);
-        right: 20px;
-      }
-
-      .compass { display: none; }
+      .tour-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .tour-sidebar { height: 220px; }
+      .hud-header { width: 90%; justify-content: center; }
+      .walk-controls-overlay { bottom: 85px; right: 16px; transform: scale(0.85); transform-origin: bottom right; }
     }
   </style>
 </head>
 <body>
+
+  <!-- SPATIAL RETICLE (APPLE VISION PRO CURSOR) -->
+  <div class="spatial-reticle" id="spatial-reticle" aria-hidden="true"></div>
 
   <!-- NAVBAR -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
@@ -510,7 +483,7 @@
         <div class="nav-logo-icon">🏯</div>
         <div class="nav-logo-text">
           <span class="nav-logo-name">Monastery 360</span>
-          <span class="nav-logo-tagline">Digital Heritage of Sikkim</span>
+          <span class="nav-logo-tagline">VisionOS Spatial Heritage</span>
         </div>
       </a>
       <div class="nav-links">
@@ -526,85 +499,79 @@
     </div>
   </nav>
 
-  <!-- TOUR LAYOUT -->
+  <!-- SPATIAL TOUR LAYOUT -->
   <div class="tour-layout">
 
     <!-- SIDEBAR -->
-    <aside class="tour-sidebar" aria-label="Monastery selector">
+    <aside class="tour-sidebar" aria-label="Monastery Selector">
       <div class="sidebar-header">
-        <h2>🏯 Select Monastery</h2>
-        <div class="sidebar-search">
-          <span class="sidebar-search-icon">🔍</span>
-          <input type="text" id="monastery-search" placeholder="Search monasteries..." aria-label="Search monasteries" />
+        <h2>👓 Spatial Sanctuary Selector</h2>
+        <div class="sidebar-search" style="margin-top:12px">
+          <input type="text" id="monastery-search" placeholder="Search monastery..." aria-label="Search monasteries" />
         </div>
       </div>
-      <div class="monastery-list" id="monastery-list" role="listbox" aria-label="Monastery list">
-        <!-- Populated by JS -->
-      </div>
+      <div class="monastery-list" id="monastery-list" role="listbox"></div>
     </aside>
 
-    <!-- VIEWER -->
-    <main class="tour-viewer" id="tour-viewer" aria-label="360° Virtual Tour Viewer">
+    <!-- 3D SPATIAL VIEWER CANVAS -->
+    <main class="tour-viewer" id="tour-viewer" aria-label="Spatial Virtual Tour Experience">
 
-      <!-- Panorama background -->
-      <div class="panorama-canvas" id="panorama-canvas"></div>
-      <div class="panorama-overlay"></div>
-
-      <!-- Drag hint -->
-      <div class="drag-hint" id="drag-hint" aria-hidden="true">
-        <span class="drag-hint-icon">👆</span>
-        <span class="drag-hint-text">Click & drag to look around</span>
-      </div>
-
-      <!-- Hotspots -->
-      <div id="hotspots-container" aria-label="Tour hotspots"></div>
-
-      <!-- Scene tabs -->
-      <div class="scene-tabs" id="scene-tabs" aria-label="Scene navigation"></div>
-
-      <!-- Compass -->
-      <div class="compass" aria-hidden="true">
-        <div class="compass-ring">
-          <span class="compass-n-label">N</span>
-          <div id="compass-needle" class="compass-needle">
-            <div class="compass-north"></div>
-            <div class="compass-south"></div>
-          </div>
+      <!-- FLOATING HUD -->
+      <div class="hud-header">
+        <span class="hud-tag">🥽 VisionOS Mode</span>
+        <span class="hud-title" id="monastery-name">Rumtek Monastery</span>
+        <div class="sound-badge">
+          <span class="sound-pulse"></span>
+          <span id="spatial-sound-status">Spatial Audio Active</span>
         </div>
       </div>
 
-      <!-- Monastery header overlay -->
-      <div class="monastery-header-overlay" id="monastery-header" aria-live="polite">
-        <div class="monastery-header-name" id="monastery-name">Select a Monastery</div>
-        <div class="monastery-header-meta" id="monastery-meta"></div>
+      <!-- 3D STAGE -->
+      <div class="panorama-stage" id="panorama-stage">
+        <div class="panorama-canvas" id="panorama-canvas"></div>
+        <div class="panorama-overlay"></div>
       </div>
 
-      <!-- Info Panel -->
-      <div class="tour-info-panel" id="info-panel" aria-label="Hotspot information panel" role="dialog">
-        <div class="info-panel-card">
-          <img src="" alt="Hotspot image" id="info-panel-img" class="info-panel-img" />
-          <button class="info-panel-close" id="info-panel-close" aria-label="Close info panel">✕</button>
-          <div class="info-panel-content">
-            <p class="card-label" id="info-panel-type">Location</p>
-            <h3 class="card-title" id="info-panel-title">Hotspot Title</h3>
-            <p class="card-description" id="info-panel-desc">Description goes here.</p>
-            <div style="margin-top:16px">
-              <a href="guide.html" class="btn btn-primary btn-sm" id="info-panel-audio-btn">🎙️ Hear Audio Guide</a>
-            </div>
-          </div>
+      <!-- SPATIAL WAYPOINTS & HOTSPOTS CONTAINER -->
+      <div id="hotspots-container"></div>
+
+      <!-- SCENE LOCATION TABS (FLOATING LEFT) -->
+      <div class="scene-tabs" id="scene-tabs" style="position:absolute; top:90px; left:24px; z-index:30;"></div>
+
+      <!-- WALKING MOVEMENT CONTROLS (D-PAD) -->
+      <div class="walk-controls-overlay">
+        <span class="walk-dpad-title">Walk Controls</span>
+        <button class="walk-btn" id="walk-forward" title="Step Forward (W / Up)" aria-label="Walk forward">⬆️</button>
+        <div class="walk-row">
+          <button class="walk-btn" id="walk-left" title="Turn Left (A / Left)" aria-label="Turn left">⬅️</button>
+          <button class="walk-btn" id="walk-backward" title="Step Back (S / Down)" aria-label="Walk backward">⬇️</button>
+          <button class="walk-btn" id="walk-right" title="Turn Right (D / Right)" aria-label="Turn right">➡️</button>
         </div>
       </div>
 
-      <!-- Controls bar -->
-      <div class="tour-controls" role="toolbar" aria-label="Tour controls">
-        <div class="tour-controls-bar">
-          <button class="tour-control-btn" id="ctrl-zoom-out" aria-label="Zoom out" data-tooltip="Zoom Out">🔍−</button>
-          <button class="tour-control-btn" id="ctrl-zoom-in" aria-label="Zoom in" data-tooltip="Zoom In">🔍+</button>
-          <div class="tour-divider"></div>
-          <button class="tour-control-btn" id="ctrl-reset" aria-label="Reset view" data-tooltip="Reset View">🔄</button>
-          <button class="tour-control-btn" id="ctrl-auto-rotate" aria-label="Auto rotate" data-tooltip="Auto Rotate">▶️</button>
-          <div class="tour-divider"></div>
-          <button class="tour-control-btn" id="ctrl-fullscreen" aria-label="Fullscreen" data-tooltip="Fullscreen">⛶</button>
+      <!-- BOTTOM SPATIAL CONTROL BAR -->
+      <div class="spatial-control-bar" role="toolbar">
+        <button class="spatial-btn" id="ctrl-walk" title="Auto Walk Mode" aria-label="Auto Walk Mode">🚶‍♂️</button>
+        <button class="spatial-btn" id="ctrl-audio" title="Toggle Spatial Audio" aria-label="Spatial Audio">🔊</button>
+        <div class="tour-divider"></div>
+        <button class="spatial-btn" id="ctrl-zoom-in" title="Zoom In" aria-label="Zoom in">🔍+</button>
+        <button class="spatial-btn" id="ctrl-zoom-out" title="Zoom Out" aria-label="Zoom out">🔍−</button>
+        <button class="spatial-btn" id="ctrl-reset" title="Reset Camera View" aria-label="Reset View">🔄</button>
+        <div class="tour-divider"></div>
+        <button class="spatial-btn" id="ctrl-fullscreen" title="Enter Immersive Fullscreen" aria-label="Fullscreen">⛶</button>
+      </div>
+
+      <!-- SPATIAL GLASS MODAL (HOTSPOT DETAILS) -->
+      <div class="spatial-modal" id="info-panel" role="dialog">
+        <img src="" alt="" id="info-panel-img" class="spatial-modal-img" />
+        <div class="spatial-modal-body">
+          <p class="card-label" id="info-panel-type" style="color:var(--clr-gold);font-size:0.75rem;text-transform:uppercase">Point of Interest</p>
+          <h3 class="spatial-modal-title" id="info-panel-title">Location Title</h3>
+          <p class="spatial-modal-desc" id="info-panel-desc">Description</p>
+          <div style="display:flex; gap:12px; margin-top:16px;">
+            <a href="guide.html" class="btn btn-primary btn-sm">🎙️ Audio Guide</a>
+            <button class="btn btn-outline btn-sm" id="info-panel-close">Close</button>
+          </div>
         </div>
       </div>
 
