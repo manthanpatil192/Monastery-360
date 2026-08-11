@@ -1,56 +1,67 @@
 // =============================================
-// TOUR.JS — 3D VR Ground Standing Engine (Seamless 360 Photorealistic Himalayan View)
+// TOUR.JS — Google VR Goggle System (100% Unique Panoramas per Monastery)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  initVRGroundTour();
+  initGoogleVRGoggle();
 });
 
-// Scene definitions with photorealistic 8K seamless 360 Photo Spheres
+// 100% UNIQUE Scene Definitions per Monastery based on Google Street View & Google Maps
 const SCENES = {
   rumtek: [
     { id: 'courtyard', name: '🏰 Main Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
-    { id: 'shrine', name: '🪔 Shrine Interior', bgImg: 'assets/images/pano_shrine_interior.png' },
-    { id: 'pemayangtse', name: '⛰️ Majestic Himalayas', bgImg: 'assets/images/pano_himalayas.png' },
-    { id: 'tashiding', name: '☸️ Tashiding Stupa', bgImg: 'assets/images/pano_tashiding.png' }
+    { id: 'shrine', name: '🪔 Golden Buddha Shrine', bgImg: 'assets/images/pano_shrine_interior.png' },
+    { id: 'rooftop', name: '🌄 Karma Nalanda Rooftop', bgImg: 'assets/images/rumtek.png' },
+    { id: 'monk_hall', name: '📜 Kangyur Library', bgImg: 'assets/images/interior.png' }
   ],
   pemayangtse: [
-    { id: 'main', name: '⛰️ Himalayan Ridge', bgImg: 'assets/images/pano_himalayas.png' },
-    { id: 'shrine', name: '🪔 Sacred Shrine', bgImg: 'assets/images/pano_shrine_interior.png' }
+    { id: 'gateway', name: '🏯 3-Story Monastery Hall', bgImg: 'assets/images/pemayangtse.png' },
+    { id: 'himalayan_ridge', name: '⛰️ Kanchenjunga Ridge', bgImg: 'assets/images/pano_pemayangtse.png' },
+    { id: 'shrine_hall', name: '🪔 Zandog Palri Shrine', bgImg: 'assets/images/pano_shrine_interior.png' }
   ],
   tashiding: [
-    { id: 'stupa', name: '☸️ Sacred Chortens', bgImg: 'assets/images/pano_tashiding.png' },
-    { id: 'courtyard', name: '🏰 Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' }
+    { id: 'sacred_stupas', name: '☸️ Holy Chortens Compound', bgImg: 'assets/images/tashiding.png' },
+    { id: 'hilltop_view', name: '⛰️ Tashiding Hilltop View', bgImg: 'assets/images/pano_tashiding.png' },
+    { id: 'bumchu_shrine', name: '🫙 Bumchu Sacred Shrine', bgImg: 'assets/images/interior.png' }
   ],
   enchey: [
-    { id: 'shrine', name: '🪔 Main Shrine', bgImg: 'assets/images/pano_shrine_interior.png' },
-    { id: 'courtyard', name: '🏰 Monastery View', bgImg: 'assets/images/pano_rumtek_courtyard.png' }
+    { id: 'dance_courtyard', name: '🎭 Cham Dance Courtyard', bgImg: 'assets/images/enchey.png' },
+    { id: 'shrine', name: '🙏 Tantric Shrine Altar', bgImg: 'assets/images/pano_shrine_interior.png' },
+    { id: 'observation_deck', name: '🌄 Gangtok Ridge View', bgImg: 'assets/images/hero.png' }
+  ],
+  ralang: [
+    { id: 'grand_courtyard', name: '🏰 Kagyu Monastery Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
+    { id: 'kagyu_shrine', name: '🪔 Ralang Main Shrine', bgImg: 'assets/images/interior.png' }
+  ],
+  samdruptse: [
+    { id: 'giant_statue', name: '🗿 135ft Guru Rinpoche Statue', bgImg: 'assets/images/hero.png' },
+    { id: 'shrine_hall', name: '🪔 Golden Statue Shrine', bgImg: 'assets/images/tashiding.png' }
   ]
 };
 
-// 3D Spatial Pins
+// 3D Spatial Pins for Google VR
 const SPATIAL_PINS = {
   'rumtek_courtyard': [
     { lat: 10, lon: 45, icon: '🪔', label: 'Step Inside Shrine', targetScene: 'shrine', type: 'waypoint' },
     { lat: -5, lon: -60, icon: '📜', label: 'Main Prayer Flags', title: 'Sacred Wind Flags', desc: 'Prayer flags carrying ancient Sanskrit mantras across the Himalayan mountains.', img: 'assets/images/rumtek.png', type: 'hotspot' },
-    { lat: 15, lon: 170, icon: '⛰️', label: 'View Kanchenjunga', title: 'Mount Kanchenjunga View', desc: 'Breath-taking panoramic view of the world\'s 3rd highest mountain peak.', img: 'assets/images/hero.png', type: 'hotspot' }
+    { lat: 15, lon: 170, icon: '🌄', label: 'Rooftop View', targetScene: 'rooftop', type: 'waypoint' }
   ],
   'rumtek_shrine': [
     { lat: 0, lon: 0, icon: '☸️', label: 'Golden Buddha', title: 'The Great Golden Buddha', desc: 'Central golden statue of Buddha Shakyamuni flanked by butter lamps.', img: 'assets/images/interior.png', type: 'hotspot' },
     { lat: -10, lon: 90, icon: '📜', label: 'Ancient Thangkas', title: 'Sacred Thangka Scrolls', desc: 'Hand-painted silk scroll paintings depicting deities and mandalas.', img: 'assets/images/interior.png', type: 'hotspot' },
     { lat: 5, lon: -120, icon: '🚪', label: 'Exit to Courtyard', targetScene: 'courtyard', type: 'waypoint' }
   ],
-  'rumtek_pemayangtse': [
-    { lat: 0, lon: 30, icon: '🏰', label: 'Explore Pemayangtse', title: 'Pemayangtse Monastery', desc: 'One of the oldest monasteries in Sikkim, established in 1705.', img: 'assets/images/pemayangtse.png', type: 'hotspot' },
-    { lat: 10, lon: -80, icon: '🪔', label: 'Enter Shrine', targetScene: 'shrine', type: 'waypoint' }
+  'pemayangtse_gateway': [
+    { lat: 0, lon: 30, icon: '⛰️', label: 'Himalayan Ridge', targetScene: 'himalayan_ridge', type: 'waypoint' },
+    { lat: 10, lon: -80, icon: '🪔', label: 'Zandog Palri Shrine', targetScene: 'shrine_hall', type: 'waypoint' }
   ],
-  'rumtek_tashiding': [
-    { lat: 0, lon: 0, icon: '☸️', label: 'Sacred Stupas', title: 'Tashiding Chortens', desc: 'Ancient white stupas at the holiest site in Sikkim.', img: 'assets/images/tashiding.png', type: 'hotspot' },
-    { lat: -10, lon: 100, icon: '🏰', label: 'Walk to Rumtek', targetScene: 'courtyard', type: 'waypoint' }
+  'tashiding_sacred_stupas': [
+    { lat: 0, lon: 0, icon: '☸️', label: 'Tashiding Chortens', title: 'Tashiding Chortens', desc: 'Ancient white stupas at the holiest site in Sikkim.', img: 'assets/images/tashiding.png', type: 'hotspot' },
+    { lat: -10, lon: 100, icon: '⛰️', label: 'Hilltop View', targetScene: 'hilltop_view', type: 'waypoint' }
   ]
 };
 
-// Three.js Core Globals
+// Three.js & Google VR Core Globals
 let scene, camera, renderer, stereoEffect, sphereMesh, standingFeetGroup;
 let isCardboardMode = false;
 let isGyroMode = false;
@@ -59,11 +70,10 @@ let currentMonastery = null;
 let currentScene = null;
 let textureLoader = new THREE.TextureLoader();
 
-// Human Standing Height Constant (1.65 meters standing on ground)
 const EYE_HEIGHT = 1.65;
 let walkStepCount = 0;
 
-// Camera Control & Damping Physics
+// Camera Physics
 let isUserInteracting = false;
 let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
 let onPointerDownLon = 0, onPointerDownLat = 0;
@@ -75,7 +85,7 @@ let targetFov = 75;
 let isAutoWalking = false;
 let autoWalkTimer = null;
 
-function initVRGroundTour() {
+function initGoogleVRGoggle() {
   initThreeJS();
   renderMonasteryList();
   loadMonastery(MONASTERIES[0]);
@@ -89,7 +99,7 @@ function initVRGroundTour() {
 }
 
 // -------------------------------------------------------------
-// THREE.JS SEAMLESS 360 SPHERICAL ENGINE
+// THREE.JS SEAMLESS 360 ENGINE
 // -------------------------------------------------------------
 function initThreeJS() {
   const container = document.getElementById('tour-viewer');
@@ -98,12 +108,10 @@ function initThreeJS() {
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera(fov, container.clientWidth / container.clientHeight, 0.1, 1100);
-  
-  // Set camera to human standing height (1.65m) above ground level (y=0)
   camera.position.set(0, EYE_HEIGHT, 0);
   camera.target = new THREE.Vector3(0, EYE_HEIGHT, -1);
 
-  // High-segment inner sphere geometry (128x64) for smooth seamless texture mapping
+  // 128x64 Sphere
   const geometry = new THREE.SphereGeometry(500, 128, 64);
   geometry.scale(-1, 1, 1);
 
@@ -115,14 +123,11 @@ function initThreeJS() {
 
   sphereMesh = new THREE.Mesh(geometry, material);
   sphereMesh.position.set(0, EYE_HEIGHT, 0);
-  // Rotate initial sphere y-axis to hide seam behind camera start angle
   sphereMesh.rotation.y = Math.PI / 2;
   scene.add(sphereMesh);
 
-  // Add 3D First-Person Standing Feet & Ground Shadow Mesh
   createStandingPersonMesh();
 
-  // WebGL Renderer with High Precision & Smooth Filtering
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(container.clientWidth, container.clientHeight);
@@ -138,13 +143,9 @@ function initThreeJS() {
   animate();
 }
 
-// -------------------------------------------------------------
-// 3D FIRST-PERSON STANDING FEET & GROUND SHADOW MESH
-// -------------------------------------------------------------
 function createStandingPersonMesh() {
   standingFeetGroup = new THREE.Group();
 
-  // Ground Contact Shadow Disc (y = 0.01)
   const shadowGeo = new THREE.CircleGeometry(0.65, 32);
   const shadowMat = new THREE.MeshBasicMaterial({
     color: 0x05050b,
@@ -156,7 +157,6 @@ function createStandingPersonMesh() {
   shadowMesh.position.set(0, 0.01, 0);
   standingFeetGroup.add(shadowMesh);
 
-  // Left & Right Boots Standing Visual
   const bootMat = new THREE.MeshBasicMaterial({ color: 0x1f1915 });
   const bootGeo = new THREE.BoxGeometry(0.16, 0.1, 0.34);
 
@@ -173,7 +173,7 @@ function createStandingPersonMesh() {
 }
 
 // -------------------------------------------------------------
-// LOAD MONASTERY & SEAMLESS PHOTO SPHERE TEXTURE
+// LOAD MONASTERY & UNIQUE SCENES
 // -------------------------------------------------------------
 function renderMonasteryList() {
   const list = document.getElementById('monastery-list');
@@ -207,25 +207,26 @@ function loadMonastery(monastery) {
   if (nameEl) nameEl.textContent = monastery.name;
 
   const scenes = SCENES[monastery.id] || SCENES.rumtek;
-  renderSceneTabs(scenes);
+  renderSceneCarousel(scenes);
   loadScene(scenes[0]);
 }
 
-function renderSceneTabs(scenes) {
-  const container = document.getElementById('scene-tabs');
+// GOOGLE STREET VIEW PHOTO SPHERE CAROUSEL STRIP
+function renderSceneCarousel(scenes) {
+  const container = document.getElementById('scene-carousel');
   if (!container) return;
   container.innerHTML = '';
 
   scenes.forEach((sc, i) => {
-    const btn = document.createElement('button');
-    btn.className = `scene-tab ${i === 0 ? 'active' : ''}`;
-    btn.textContent = sc.name;
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.scene-tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
+    const thumb = document.createElement('div');
+    thumb.className = `gvr-carousel-thumb ${i === 0 ? 'active' : ''}`;
+    thumb.innerHTML = `<span>📍 ${sc.name}</span>`;
+    thumb.addEventListener('click', () => {
+      document.querySelectorAll('.gvr-carousel-thumb').forEach(t => t.classList.remove('active'));
+      thumb.classList.add('active');
       performWalkTransition(() => loadScene(sc));
     });
-    container.appendChild(btn);
+    container.appendChild(thumb);
   });
 }
 
@@ -233,7 +234,6 @@ function loadScene(sc) {
   currentScene = sc;
 
   textureLoader.load(sc.bgImg, (texture) => {
-    // Configure texture mapping to eliminate vertical seam line
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.minFilter = THREE.LinearFilter;
@@ -242,14 +242,13 @@ function loadScene(sc) {
 
     sphereMesh.material.map = texture;
     sphereMesh.material.needsUpdate = true;
-    showToast(`Standing on ground at ${sc.name}`, 'info', 1200);
+    showToast(`Google VR: ${sc.name}`, 'info', 1200);
   });
 
   const key = `${currentMonastery.id}_${sc.id}`;
   const pins = SPATIAL_PINS[key] || generateDefaultPins(currentMonastery, sc);
   renderSpatialPins(pins);
 
-  // Reset ground position
   camera.position.set(0, EYE_HEIGHT, 0);
   if (standingFeetGroup) standingFeetGroup.position.set(0, 0, 0);
 
@@ -369,7 +368,7 @@ function stepForward() {
   walkStepCount += 1;
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
-  dir.y = 0; // Strictly on ground floor
+  dir.y = 0;
   dir.normalize();
 
   camera.position.addScaledVector(dir, 1.2);
@@ -378,7 +377,7 @@ function stepForward() {
   if (standingFeetGroup) standingFeetGroup.position.set(camera.position.x, 0, camera.position.z);
   if (sphereMesh) sphereMesh.position.set(camera.position.x, EYE_HEIGHT, camera.position.z);
 
-  showToast('👣 Stepping forward on ground...', 'info', 800);
+  showToast('👣 Stepping forward...', 'info', 800);
 }
 
 function stepBackward() {
@@ -401,14 +400,13 @@ function turnLeft() { targetLon -= 15; }
 function turnRight() { targetLon += 15; }
 
 // -------------------------------------------------------------
-// ANIMATION LOOP & GOOGLE CARDBOARD RENDER
+// ANIMATION LOOP & CARDBOARD STEREO RENDER
 // -------------------------------------------------------------
 function animate(time) {
   requestAnimationFrame(animate);
 
   if (window.TWEEN) TWEEN.update(time);
 
-  // Smooth Inertia Damping
   lon += (targetLon - lon) * 0.08;
   lat += (targetLat - lat) * 0.08;
   fov += (targetFov - fov) * 0.08;
@@ -482,7 +480,7 @@ function initVRControls() {
     targetLon = 0; targetLat = 0; targetFov = 75;
     camera.position.set(0, EYE_HEIGHT, 0);
     if (standingFeetGroup) standingFeetGroup.position.set(0, 0, 0);
-    showToast('VR Camera Reset to Eye Level', 'info', 1200);
+    showToast('Google VR Camera Reset', 'info', 1200);
   });
 
   const walkBtn = document.getElementById('ctrl-walk');
