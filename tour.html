@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° Spatial Virtual Tour — VisionOS Experience — Monastery 360</title>
-  <meta name="description" content="Immersive Apple VisionOS style spatial virtual tour with real-time 3D walking motion, spatial audio, and interactive waypoints." />
+  <title>360° Real VR Spatial Tour — VisionOS Experience — Monastery 360</title>
+  <meta name="description" content="Photorealistic 360° WebGL Spherical Virtual Tour with real 3D camera movement, spatial audio, and Apple VisionOS eye-tracking simulation." />
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/animations.css" />
+  <!-- Three.js WebGL 3D Engine & Tween.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
   <style>
-    /* ===== APPLE VISION OS SPATIAL STYLES ===== */
+    /* ===== REAL 360 WEBGL SPATIAL STYLES ===== */
     :root {
-      --spatial-glass: rgba(20, 20, 35, 0.45);
-      --spatial-border: rgba(255, 255, 255, 0.18);
-      --spatial-glow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+      --spatial-glass: rgba(12, 12, 24, 0.55);
+      --spatial-border: rgba(255, 255, 255, 0.2);
+      --spatial-glow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.3);
     }
 
     body {
       user-select: none;
-      background: #040409;
+      background: #000;
+      overflow: hidden;
     }
 
     .tour-layout {
@@ -27,14 +32,14 @@
       height: calc(100vh - var(--nav-height));
       margin-top: var(--nav-height);
       overflow: hidden;
-      perspective: 1200px;
+      position: relative;
     }
 
-    /* SIDEBAR - VISION OS FLOATING PANEL */
+    /* SIDEBAR - VISION OS GLASS */
     .tour-sidebar {
       background: var(--spatial-glass);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      backdrop-filter: blur(35px) saturate(200%);
+      -webkit-backdrop-filter: blur(35px) saturate(200%);
       border-right: 1px solid var(--spatial-border);
       box-shadow: var(--spatial-glow);
       overflow-y: auto;
@@ -66,7 +71,7 @@
 
     .sidebar-search input {
       width: 100%;
-      background: rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--spatial-border);
       border-radius: 12px;
       padding: 10px 14px 10px 38px;
@@ -77,9 +82,9 @@
     }
 
     .sidebar-search input:focus {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.15);
       border-color: var(--clr-gold);
-      box-shadow: 0 0 15px rgba(244, 168, 50, 0.25);
+      box-shadow: 0 0 20px rgba(244, 168, 50, 0.3);
     }
 
     .monastery-list-item {
@@ -91,90 +96,52 @@
       transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
       border: 1px solid transparent;
       margin-bottom: 6px;
-      position: relative;
-      overflow: hidden;
     }
 
     .monastery-list-item:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.25);
       transform: scale(1.02) translateX(4px);
     }
 
     .monastery-list-item.active {
-      background: rgba(244, 168, 50, 0.15);
-      border-color: rgba(244, 168, 50, 0.5);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      background: rgba(244, 168, 50, 0.18);
+      border-color: rgba(244, 168, 50, 0.6);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
 
-    /* TOUR VIEWER - 3D SPATIAL CANVAS */
+    /* WEBGL 3D CANVAS STAGE */
     .tour-viewer {
       position: relative;
       overflow: hidden;
       background: #000;
-      perspective: 1000px;
-      transform-style: preserve-3d;
-      cursor: default;
-    }
-
-    /* Spatial Canvas Container with 3D Motion */
-    .panorama-stage {
-      position: absolute;
-      inset: -5%;
-      width: 110%;
-      height: 110%;
-      transform-style: preserve-3d;
-      will-change: transform;
-      transition: transform 0.1s ease-out;
-    }
-
-    .panorama-canvas {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
+      cursor: grab;
       width: 100%;
       height: 100%;
-      transition: background-image 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
-      will-change: transform, filter;
     }
 
-    /* Walk Motion Animation Layer */
-    .panorama-stage.walking {
-      animation: spatialWalk 0.6s ease-in-out infinite alternate;
+    .tour-viewer:active {
+      cursor: grabbing;
     }
 
-    @keyframes spatialWalk {
-      0% { transform: scale(1) translateY(0px) rotateZ(0deg); }
-      50% { transform: scale(1.02) translateY(-8px) rotateZ(0.5deg); }
-      100% { transform: scale(1.04) translateY(4px) rotateZ(-0.5deg); }
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
-    .panorama-stage.stepping-forward {
-      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), filter 1.2s ease;
-      transform: scale(1.4) translateZ(300px);
-      filter: blur(8px) brightness(1.2);
-    }
-
-    .panorama-overlay {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6) 100%);
-      pointer-events: none;
-    }
-
-    /* VISION OS SPATIAL RETICLE / CURSOR */
+    /* VISION OS RETICLE */
     .spatial-reticle {
       position: fixed;
-      width: 24px;
-      height: 24px;
-      border: 2px solid rgba(255, 255, 255, 0.7);
+      width: 26px;
+      height: 26px;
+      border: 2px solid rgba(255, 255, 255, 0.85);
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999;
       transform: translate(-50%, -50%) scale(1);
       transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -186,48 +153,55 @@
       height: 6px;
       background: var(--clr-gold);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--clr-gold);
+      box-shadow: 0 0 10px var(--clr-gold);
     }
 
     .spatial-reticle.hovering {
       transform: translate(-50%, -50%) scale(1.8);
       border-color: var(--clr-gold);
-      background: rgba(244, 168, 50, 0.2);
+      background: rgba(244, 168, 50, 0.25);
     }
 
     .spatial-reticle.pinching {
-      transform: translate(-50%, -50%) scale(0.7);
+      transform: translate(-50%, -50%) scale(0.65);
       background: var(--clr-gold);
     }
 
-    /* WAYPOINT MARKERS (WALK TO LOCATION) */
-    .waypoint-marker {
+    /* 3D SPATIAL PROJECTED PINS */
+    .spatial-pin {
       position: absolute;
       transform: translate(-50%, -50%);
       z-index: 15;
       cursor: pointer;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: auto;
+      transition: transform 0.2s ease, opacity 0.3s ease;
+      will-change: transform, left, top;
     }
 
-    .waypoint-badge {
-      background: rgba(15, 15, 25, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(244, 168, 50, 0.6);
-      border-radius: 30px;
+    .spatial-pin.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pin-card {
+      background: rgba(10, 10, 20, 0.82);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(244, 168, 50, 0.7);
+      border-radius: 100px;
       padding: 8px 18px;
       display: flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(244, 168, 50, 0.3);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(244, 168, 50, 0.4);
       color: #fff;
       font-size: 0.82rem;
       font-weight: 600;
       white-space: nowrap;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .waypoint-icon {
+    .pin-icon {
       width: 28px;
       height: 28px;
       background: var(--grad-gold);
@@ -235,23 +209,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: #1a0800;
-      box-shadow: 0 0 10px rgba(244, 168, 50, 0.8);
+      box-shadow: 0 0 12px rgba(244, 168, 50, 0.8);
       animation: pulseGlow 2s infinite;
     }
 
-    .waypoint-marker:hover {
-      transform: translate(-50%, -50%) scale(1.15) translateZ(20px);
-    }
-
-    .waypoint-marker:hover .waypoint-badge {
-      background: rgba(244, 168, 50, 0.25);
+    .spatial-pin:hover .pin-card {
+      transform: scale(1.15);
+      background: rgba(244, 168, 50, 0.3);
       border-color: #fff;
-      box-shadow: 0 15px 40px rgba(244, 168, 50, 0.5);
+      box-shadow: 0 0 35px rgba(244, 168, 50, 0.7);
     }
 
-    /* VISION OS FLOATING HEADS-UP DISPLAY (HUD) */
+    /* FLOATING HUD OVERLAY */
     .hud-header {
       position: absolute;
       top: 24px;
@@ -259,8 +230,8 @@
       transform: translateX(-50%);
       z-index: 30;
       background: var(--spatial-glass);
-      backdrop-filter: blur(25px) saturate(180%);
-      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
       border: 1px solid var(--spatial-border);
       border-radius: 100px;
       padding: 10px 24px;
@@ -279,25 +250,26 @@
     }
 
     .hud-tag {
-      background: rgba(244, 168, 50, 0.2);
-      border: 1px solid rgba(244, 168, 50, 0.4);
+      background: rgba(244, 168, 50, 0.25);
+      border: 1px solid rgba(244, 168, 50, 0.5);
       color: var(--clr-gold);
-      padding: 3px 10px;
+      padding: 3px 12px;
       border-radius: 100px;
       font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
-    /* WALKING MOVEMENT CONTROL D-PAD */
+    /* WALKING MOVEMENT CONTROLS (D-PAD) */
     .walk-controls-overlay {
       position: absolute;
       bottom: 24px;
       right: 24px;
       z-index: 30;
       background: var(--spatial-glass);
-      backdrop-filter: blur(25px);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
       border: 1px solid var(--spatial-border);
       border-radius: 24px;
       padding: 16px;
@@ -333,21 +305,14 @@
     }
 
     .walk-btn:hover {
-      background: rgba(244, 168, 50, 0.25);
+      background: rgba(244, 168, 50, 0.3);
       border-color: var(--clr-gold);
-      transform: scale(1.08);
+      transform: scale(1.1);
     }
 
-    .walk-btn:active {
-      transform: scale(0.95);
-    }
+    .walk-row { display: flex; gap: 8px; }
 
-    .walk-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    /* VISION OS CURVED BOTTOM CONTROLS BAR */
+    /* BOTTOM CONTROL CAPSULE BAR */
     .spatial-control-bar {
       position: absolute;
       bottom: 24px;
@@ -355,8 +320,8 @@
       transform: translateX(-50%);
       z-index: 30;
       background: var(--spatial-glass);
-      backdrop-filter: blur(30px) saturate(200%);
-      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      backdrop-filter: blur(35px) saturate(200%);
+      -webkit-backdrop-filter: blur(35px) saturate(200%);
       border: 1px solid var(--spatial-border);
       border-radius: 100px;
       padding: 10px 24px;
@@ -382,33 +347,33 @@
     }
 
     .spatial-btn:hover {
-      background: rgba(244, 168, 50, 0.3);
+      background: rgba(244, 168, 50, 0.35);
       border-color: var(--clr-gold);
-      transform: scale(1.12);
-      box-shadow: 0 0 20px rgba(244, 168, 50, 0.4);
+      transform: scale(1.15);
+      box-shadow: 0 0 25px rgba(244, 168, 50, 0.5);
     }
 
     .spatial-btn.active {
       background: var(--grad-gold);
       color: #1a0800;
       border-color: #fff;
-      box-shadow: 0 0 25px rgba(244, 168, 50, 0.6);
+      box-shadow: 0 0 30px rgba(244, 168, 50, 0.7);
     }
 
-    /* SPATIAL GLASS DIALOG / INFO PANEL */
+    /* SPATIAL INFO MODAL */
     .spatial-modal {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0.85);
-      width: 420px;
+      width: 440px;
       max-width: 90%;
       background: var(--spatial-glass);
-      backdrop-filter: blur(40px) saturate(200%);
-      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      backdrop-filter: blur(45px) saturate(220%);
+      -webkit-backdrop-filter: blur(45px) saturate(220%);
       border: 1px solid var(--spatial-border);
       border-radius: 28px;
-      box-shadow: var(--spatial-glow), 0 30px 80px rgba(0, 0, 0, 0.8);
+      box-shadow: var(--spatial-glow), 0 35px 90px rgba(0, 0, 0, 0.85);
       z-index: 100;
       opacity: 0;
       pointer-events: none;
@@ -424,13 +389,11 @@
 
     .spatial-modal-img {
       width: 100%;
-      height: 200px;
+      height: 220px;
       object-fit: cover;
     }
 
-    .spatial-modal-body {
-      padding: 24px;
-    }
+    .spatial-modal-body { padding: 24px; }
 
     .spatial-modal-title {
       font-size: 1.4rem;
@@ -442,25 +405,40 @@
     .spatial-modal-desc {
       font-size: 0.9rem;
       color: var(--clr-text-muted);
-      line-height: 1.6;
+      line-height: 1.65;
       margin-bottom: 20px;
     }
 
-    /* AMBIENT SOUND INDICATOR */
-    .sound-badge {
+    /* SCENE SELECTION TABS */
+    .scene-tabs {
+      position: absolute;
+      top: 90px;
+      left: 24px;
+      z-index: 30;
       display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      color: var(--clr-gold);
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .sound-pulse {
-      width: 8px;
-      height: 8px;
-      background: var(--clr-gold);
-      border-radius: 50%;
-      animation: pulseGlow 1.5s infinite;
+    .scene-tab {
+      background: var(--spatial-glass);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--spatial-border);
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .scene-tab.active, .scene-tab:hover {
+      background: rgba(244, 168, 50, 0.25);
+      border-color: var(--clr-gold);
+      color: var(--clr-gold);
+      box-shadow: 0 0 20px rgba(244, 168, 50, 0.3);
     }
 
     @media (max-width: 768px) {
@@ -483,7 +461,7 @@
         <div class="nav-logo-icon">🏯</div>
         <div class="nav-logo-text">
           <span class="nav-logo-name">Monastery 360</span>
-          <span class="nav-logo-tagline">VisionOS Spatial Heritage</span>
+          <span class="nav-logo-tagline">Real WebGL 360° VR</span>
         </div>
       </a>
       <div class="nav-links">
@@ -505,63 +483,60 @@
     <!-- SIDEBAR -->
     <aside class="tour-sidebar" aria-label="Monastery Selector">
       <div class="sidebar-header">
-        <h2>👓 Spatial Sanctuary Selector</h2>
+        <h2>👓 Spatial VR Sanctuaries</h2>
         <div class="sidebar-search" style="margin-top:12px">
-          <input type="text" id="monastery-search" placeholder="Search monastery..." aria-label="Search monasteries" />
+          <input type="text" id="monastery-search" placeholder="Search sanctuary..." aria-label="Search monasteries" />
         </div>
       </div>
       <div class="monastery-list" id="monastery-list" role="listbox"></div>
     </aside>
 
-    <!-- 3D SPATIAL VIEWER CANVAS -->
-    <main class="tour-viewer" id="tour-viewer" aria-label="Spatial Virtual Tour Experience">
+    <!-- 3D THREE.JS WEBGL CANVAS STAGE -->
+    <main class="tour-viewer" id="tour-viewer" aria-label="Real WebGL 360° VR Experience">
+
+      <!-- THREE.JS WEBGL CANVAS -->
+      <canvas id="webgl-canvas"></canvas>
 
       <!-- FLOATING HUD -->
       <div class="hud-header">
-        <span class="hud-tag">🥽 VisionOS Mode</span>
+        <span class="hud-tag">🥽 360° Real VR</span>
         <span class="hud-title" id="monastery-name">Rumtek Monastery</span>
-        <div class="sound-badge">
-          <span class="sound-pulse"></span>
+        <div class="sound-badge" style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--clr-gold)">
+          <span style="width:8px;height:8px;background:var(--clr-gold);border-radius:50%;animation:pulseGlow 1.5s infinite"></span>
           <span id="spatial-sound-status">Spatial Audio Active</span>
         </div>
       </div>
 
-      <!-- 3D STAGE -->
-      <div class="panorama-stage" id="panorama-stage">
-        <div class="panorama-canvas" id="panorama-canvas"></div>
-        <div class="panorama-overlay"></div>
-      </div>
+      <!-- 3D SPATIAL PROJECTED PINS CONTAINER -->
+      <div id="spatial-pins-container"></div>
 
-      <!-- SPATIAL WAYPOINTS & HOTSPOTS CONTAINER -->
-      <div id="hotspots-container"></div>
-
-      <!-- SCENE LOCATION TABS (FLOATING LEFT) -->
-      <div class="scene-tabs" id="scene-tabs" style="position:absolute; top:90px; left:24px; z-index:30;"></div>
+      <!-- SCENE LOCATION TABS -->
+      <div class="scene-tabs" id="scene-tabs"></div>
 
       <!-- WALKING MOVEMENT CONTROLS (D-PAD) -->
       <div class="walk-controls-overlay">
         <span class="walk-dpad-title">Walk Controls</span>
-        <button class="walk-btn" id="walk-forward" title="Step Forward (W / Up)" aria-label="Walk forward">⬆️</button>
+        <button class="walk-btn" id="walk-forward" title="Step Forward (W / Up)">⬆️</button>
         <div class="walk-row">
-          <button class="walk-btn" id="walk-left" title="Turn Left (A / Left)" aria-label="Turn left">⬅️</button>
-          <button class="walk-btn" id="walk-backward" title="Step Back (S / Down)" aria-label="Walk backward">⬇️</button>
-          <button class="walk-btn" id="walk-right" title="Turn Right (D / Right)" aria-label="Turn right">➡️</button>
+          <button class="walk-btn" id="walk-left" title="Turn Left (A / Left)">⬅️</button>
+          <button class="walk-btn" id="walk-backward" title="Step Back (S / Down)">⬇️</button>
+          <button class="walk-btn" id="walk-right" title="Turn Right (D / Right)">➡️</button>
         </div>
       </div>
 
       <!-- BOTTOM SPATIAL CONTROL BAR -->
       <div class="spatial-control-bar" role="toolbar">
-        <button class="spatial-btn" id="ctrl-walk" title="Auto Walk Mode" aria-label="Auto Walk Mode">🚶‍♂️</button>
-        <button class="spatial-btn" id="ctrl-audio" title="Toggle Spatial Audio" aria-label="Spatial Audio">🔊</button>
+        <button class="spatial-btn" id="ctrl-walk" title="Auto Walk Mode">🚶‍♂️</button>
+        <button class="spatial-btn" id="ctrl-audio" title="Toggle Spatial Audio">🔊</button>
         <div class="tour-divider"></div>
-        <button class="spatial-btn" id="ctrl-zoom-in" title="Zoom In" aria-label="Zoom in">🔍+</button>
-        <button class="spatial-btn" id="ctrl-zoom-out" title="Zoom Out" aria-label="Zoom out">🔍−</button>
-        <button class="spatial-btn" id="ctrl-reset" title="Reset Camera View" aria-label="Reset View">🔄</button>
+        <button class="spatial-btn" id="ctrl-zoom-in" title="Zoom In">🔍+</button>
+        <button class="spatial-btn" id="ctrl-zoom-out" title="Zoom Out">🔍−</button>
+        <button class="spatial-btn" id="ctrl-reset" title="Reset VR Camera">🔄</button>
         <div class="tour-divider"></div>
-        <button class="spatial-btn" id="ctrl-fullscreen" title="Enter Immersive Fullscreen" aria-label="Fullscreen">⛶</button>
+        <button class="spatial-btn" id="ctrl-fullscreen" title="Enter Immersive Fullscreen">⛶</button>
       </div>
 
-      <!-- SPATIAL GLASS MODAL (HOTSPOT DETAILS) -->
+      <!-- SPATIAL GLASS MODAL -->
       <div class="spatial-modal" id="info-panel" role="dialog">
         <img src="" alt="" id="info-panel-img" class="spatial-modal-img" />
         <div class="spatial-modal-body">

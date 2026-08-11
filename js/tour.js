@@ -1,143 +1,168 @@
 // =============================================
-// SPATIAL TOUR.JS — VisionOS Apple VR Goggle Experience
+// SPATIAL TOUR.JS — Three.js WebGL 360° VR Engine
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  initSpatialTour();
+  initRealVR();
 });
 
-// Scene definitions per monastery with waypoints & spatial depth
+// Scene definitions with photorealistic 360 panoramic textures & 3D pin coordinates
 const SCENES = {
   rumtek: [
-    { id: 'entrance', name: '🚪 Grand Entrance Gate', bg: 'linear-gradient(135deg, #1a0a00 0%, #3d1a00 30%, #1a0a00 100%)', bgImg: 'assets/images/rumtek.png' },
-    { id: 'courtyard', name: '👣 Prayer Wheel Courtyard', bg: 'linear-gradient(135deg, #200a00 0%, #4a1c00 50%, #1a0500 100%)', bgImg: 'assets/images/rumtek.png' },
-    { id: 'prayer-hall', name: '🪔 Sacred Shrine Hall', bg: 'linear-gradient(135deg, #1a0500 0%, #2d0000 40%, #4a1500 100%)', bgImg: 'assets/images/interior.png' },
-    { id: 'rooftop', name: '🌄 Mountain View Rooftop', bg: 'linear-gradient(135deg, #000820 0%, #001a40 50%, #002060 100%)', bgImg: 'assets/images/rumtek.png' },
+    { id: 'courtyard', name: '🏰 Main Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
+    { id: 'shrine', name: '🪔 Shrine Interior', bgImg: 'assets/images/pano_shrine_interior.png' },
+    { id: 'pemayangtse', name: '🌲 Pemayangtse Ridge', bgImg: 'assets/images/pano_pemayangtse.png' },
+    { id: 'tashiding', name: '⛰️ Tashiding Stupa', bgImg: 'assets/images/pano_tashiding.png' }
   ],
   pemayangtse: [
-    { id: 'entrance', name: '🚪 Ancient Gateway', bg: 'linear-gradient(135deg, #150a00 0%, #2a1500 50%, #1a0800 100%)', bgImg: 'assets/images/pemayangtse.png' },
-    { id: 'shrine', name: '🪔 Main Shrine', bg: 'linear-gradient(135deg, #1a0000 0%, #300000 50%, #200010 100%)', bgImg: 'assets/images/interior.png' },
-    { id: 'terrace', name: '🌄 Roof Terrace', bg: 'linear-gradient(135deg, #001030 0%, #002050 60%, #00103a 100%)', bgImg: 'assets/images/pemayangtse.png' },
+    { id: 'main', name: '🌲 Monastery Complex', bgImg: 'assets/images/pano_pemayangtse.png' },
+    { id: 'shrine', name: '🪔 Sacred Shrine', bgImg: 'assets/images/pano_shrine_interior.png' }
   ],
   tashiding: [
-    { id: 'stupa', name: '☸️ Sacred Stupa Path', bg: 'linear-gradient(135deg, #100010 0%, #200030 50%, #180020 100%)', bgImg: 'assets/images/tashiding.png' },
-    { id: 'hilltop', name: '⛰️ Hilltop Sanctuary', bg: 'linear-gradient(135deg, #001020 0%, #002540 60%, #001830 100%)', bgImg: 'assets/images/tashiding.png' },
-    { id: 'bumchu', name: '🫙 Bumchu Shrine', bg: 'linear-gradient(135deg, #0a0a00 0%, #1a1500 50%, #100d00 100%)', bgImg: 'assets/images/interior.png' },
+    { id: 'stupa', name: '⛰️ Sacred Chortens', bgImg: 'assets/images/pano_tashiding.png' },
+    { id: 'courtyard', name: '🏰 Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' }
   ],
   enchey: [
-    { id: 'courtyard', name: '🎭 Dance Courtyard', bg: 'linear-gradient(135deg, #001020 0%, #001a30 50%, #000f20 100%)', bgImg: 'assets/images/enchey.png' },
-    { id: 'shrine', name: '🙏 Main Shrine', bg: 'linear-gradient(135deg, #1a0500 0%, #300a00 50%, #1a0300 100%)', bgImg: 'assets/images/interior.png' },
-    { id: 'deck', name: '🌄 Observation Deck', bg: 'linear-gradient(135deg, #000515 0%, #000a25 50%, #000518 100%)', bgImg: 'assets/images/enchey.png' },
+    { id: 'shrine', name: '🪔 Main Shrine', bgImg: 'assets/images/pano_shrine_interior.png' },
+    { id: 'courtyard', name: '🏰 Monastery View', bgImg: 'assets/images/pano_rumtek_courtyard.png' }
+  ]
+};
+
+// 3D Spatial Pins (Latitude, Longitude coordinates in degrees on 360 sphere)
+const SPATIAL_PINS = {
+  'rumtek_courtyard': [
+    { lat: 10, lon: 45, icon: '🪔', label: 'Step Inside Shrine', targetScene: 'shrine', type: 'waypoint' },
+    { lat: -5, lon: -60, icon: '📜', label: 'Main Prayer Flags', title: 'Sacred Wind Flags', desc: 'Prayer flags carrying ancient Sanskrit mantras across the Himalayan mountains.', img: 'assets/images/rumtek.png', type: 'hotspot' },
+    { lat: 15, lon: 170, icon: '⛰️', label: 'View Kanchenjunga', title: 'Mount Kanchenjunga View', desc: 'Breath-taking panoramic view of the world\'s 3rd highest mountain peak.', img: 'assets/images/hero.png', type: 'hotspot' }
   ],
+  'rumtek_shrine': [
+    { lat: 0, lon: 0, icon: '☸️', label: 'Golden Buddha', title: 'The Great Golden Buddha', desc: 'Central golden statue of Buddha Shakyamuni flanked by butter lamps.', img: 'assets/images/interior.png', type: 'hotspot' },
+    { lat: -10, lon: 90, icon: '📜', label: 'Ancient Thangkas', title: 'Sacred Thangka Scrolls', desc: 'Hand-painted silk scroll paintings depicting deities and mandalas.', img: 'assets/images/interior.png', type: 'hotspot' },
+    { lat: 5, lon: -120, icon: '🚪', label: 'Exit to Courtyard', targetScene: 'courtyard', type: 'waypoint' }
+  ],
+  'rumtek_pemayangtse': [
+    { lat: 0, lon: 30, icon: '🏰', label: 'Explore Pemayangtse', title: 'Pemayangtse Monastery', desc: 'One of the oldest monasteries in Sikkim, established in 1705.', img: 'assets/images/pemayangtse.png', type: 'hotspot' },
+    { lat: 10, lon: -80, icon: '🪔', label: 'Enter Shrine', targetScene: 'shrine', type: 'waypoint' }
+  ],
+  'rumtek_tashiding': [
+    { lat: 0, lon: 0, icon: '☸️', label: 'Sacred Stupas', title: 'Tashiding Chortens', desc: 'Ancient white stupas at the holiest site in Sikkim.', img: 'assets/images/tashiding.png', type: 'hotspot' },
+    { lat: -10, lon: 100, icon: '🏰', label: 'Walk to Rumtek', targetScene: 'courtyard', type: 'waypoint' }
+  ]
 };
 
-// Spatial Hotspots & Walk Waypoints
-const SPATIAL_ELEMENTS = {
-  'rumtek_entrance': {
-    waypoints: [
-      { x: 50, y: 75, targetScene: 'courtyard', label: '👣 Walk to Courtyard', icon: '🐾' },
-      { x: 65, y: 48, targetScene: 'prayer-hall', label: '🚪 Step Inside Shrine', icon: '🛕' },
-    ],
-    hotspots: [
-      { x: 30, y: 42, icon: '🏯', label: 'Main Archway', title: 'The Grand Entrance Arch', desc: 'Hand-carved wooden beams with traditional Tibetan auspicious dragons welcoming pilgrims.', img: 'assets/images/rumtek.png' },
-      { x: 75, y: 35, icon: '🔔', label: 'Sacred Bell', title: 'Resonant Temple Bell', desc: 'Rung during dawn and dusk ceremonies. The sound carries across the valley.', img: 'assets/images/interior.png' },
-    ]
-  },
-  'rumtek_courtyard': {
-    waypoints: [
-      { x: 50, y: 70, targetScene: 'prayer-hall', label: '🪔 Enter Prayer Hall', icon: '👣' },
-      { x: 80, y: 45, targetScene: 'rooftop', label: '🌄 Climb to Rooftop', icon: '🧗‍♂️' },
-      { x: 20, y: 65, targetScene: 'entrance', label: '🚪 Walk Back to Gate', icon: '⬅️' },
-    ],
-    hotspots: [
-      { x: 45, y: 40, icon: '☸️', label: 'Golden Prayer Wheels', title: 'Mani Wheels', desc: 'Spun clockwise by monks reciting "Om Mani Padme Hum".', img: 'assets/images/rumtek.png' }
-    ]
-  },
-  'rumtek_prayer-hall': {
-    waypoints: [
-      { x: 50, y: 78, targetScene: 'courtyard', label: '👣 Exit to Courtyard', icon: '🚪' },
-    ],
-    hotspots: [
-      { x: 50, y: 38, icon: '🪔', label: 'Golden Altar', title: 'Central Buddha Altar', desc: 'Houses sacred relics, golden Buddha statues, and glowing butter lamps.', img: 'assets/images/interior.png' },
-      { x: 25, y: 50, icon: '📜', label: 'Thangka Scrolls', title: 'Sacred Wall Scrolls', desc: 'Century-old silk scroll paintings depicting enlightened masters.', img: 'assets/images/interior.png' },
-      { x: 75, y: 48, icon: '📚', label: 'Scripture Vault', title: 'Kangyur Scriptures', desc: 'Over 5,000 hand-printed sacred Buddhist canons.', img: 'assets/images/interior.png' }
-    ]
-  }
-};
-
-// Global Spatial State
+// Three.js Core Globals
+let scene, camera, renderer, sphereMesh, particles;
 let currentMonastery = null;
 let currentScene = null;
-let rotationX = 0;
-let rotationY = 0;
-let cameraScale = 1;
-let cameraZ = 0;
-let isDragging = false;
-let startMouseX = 0, startMouseY = 0;
+let textureLoader = new THREE.TextureLoader();
+
+// Camera Control & Damping Physics
+let isUserInteracting = false;
+let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+let onPointerDownLon = 0, onPointerDownLat = 0;
+let lon = 0, lat = 0;
+let targetLon = 0, targetLat = 0;
+let phi = 0, theta = 0;
+let fov = 75;
+let targetFov = 75;
 let isAutoWalking = false;
 let autoWalkTimer = null;
 let audioEnabled = true;
 
-// Web Audio Synthesizer for Footstep / Spatial Feedback
+// Web Audio API
 let audioCtx = null;
 
-function initSpatialTour() {
+function initRealVR() {
+  initThreeJS();
   initReticleTracking();
   renderMonasteryList();
   loadMonastery(MONASTERIES[0]);
-  initSpatialMousePan();
   initWalkControls();
   initSpatialKeyboard();
-  initControls();
+  initUIControls();
   initSearch();
+
+  // Handle window resize
+  window.addEventListener('resize', onWindowResize);
 }
 
 // -------------------------------------------------------------
-// VISION OS SPATIAL RETICLE (EYE TRACKING CURSOR)
+// THREE.JS WEBGL 3D SPHERICAL ENGINE INITIALIZATION
 // -------------------------------------------------------------
-function initReticleTracking() {
-  const reticle = document.getElementById('spatial-reticle');
-  if (!reticle) return;
+function initThreeJS() {
+  const container = document.getElementById('tour-viewer');
+  const canvas = document.getElementById('webgl-canvas');
 
-  let reticleX = window.innerWidth / 2;
-  let reticleY = window.innerHeight / 2;
-  let mouseX = reticleX;
-  let mouseY = reticleY;
+  // Scene
+  scene = new THREE.Scene();
 
-  window.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+  // Camera
+  camera = new THREE.PerspectiveCamera(fov, container.clientWidth / container.clientHeight, 1, 1100);
+  camera.target = new THREE.Vector3(0, 0, 0);
+
+  // 360 Inner Sphere Geometry
+  const geometry = new THREE.SphereGeometry(500, 60, 40);
+  geometry.scale(-1, 1, 1); // Flip inside out
+
+  const material = new THREE.MeshBasicMaterial({
+    map: null,
+    transparent: true,
+    opacity: 1
   });
 
-  // Smooth lerp follow cursor
-  function animateReticle() {
-    reticleX += (mouseX - reticleX) * 0.25;
-    reticleY += (mouseY - reticleY) * 0.25;
-    reticle.style.left = `${reticleX}px`;
-    reticle.style.top = `${reticleY}px`;
-    requestAnimationFrame(animateReticle);
+  sphereMesh = new THREE.Mesh(geometry, material);
+  scene.add(sphereMesh);
+
+  // Floating Atmospheric Dust Particles (3D Depth)
+  createFloatingParticles();
+
+  // WebGL Renderer
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(container.clientWidth, container.clientHeight);
+
+  // Pointer / Drag Event Listeners
+  container.addEventListener('pointerdown', onPointerDown);
+  container.addEventListener('wheel', onDocumentMouseWheel, { passive: false });
+
+  // Animation Loop
+  animate();
+}
+
+// -------------------------------------------------------------
+// FLOATING 3D DUST PARTICLES (ATMOSPHERIC REALISM)
+// -------------------------------------------------------------
+function createFloatingParticles() {
+  const particleCount = 250;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount * 3; i += 3) {
+    positions[i] = (Math.random() - 0.5) * 400;
+    positions[i + 1] = (Math.random() - 0.5) * 400;
+    positions[i + 2] = (Math.random() - 0.5) * 400;
   }
-  animateReticle();
 
-  // Detect hover on interactive spatial elements
-  document.addEventListener('mouseover', e => {
-    const interactive = e.target.closest('button, .monastery-list-item, .waypoint-marker, .hotspot, .spatial-btn, .walk-btn');
-    if (interactive) {
-      reticle.classList.add('hovering');
-    } else {
-      reticle.classList.remove('hovering');
-    }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({
+    color: 0xf4a832,
+    size: 2.5,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending
   });
 
-  document.addEventListener('mousedown', () => reticle.classList.add('pinching'));
-  document.addEventListener('mouseup', () => reticle.classList.remove('pinching'));
+  particles = new THREE.Points(geometry, material);
+  scene.add(particles);
 }
 
 // -------------------------------------------------------------
-// MONASTERY & SCENE LOAD
+// LOAD MONASTERY & PANORAMA TEXTURE
 // -------------------------------------------------------------
 function renderMonasteryList() {
   const list = document.getElementById('monastery-list');
+  if (!list) return;
   list.innerHTML = '';
 
   MONASTERIES.forEach(m => {
@@ -189,216 +214,279 @@ function renderSceneTabs(scenes) {
   });
 }
 
-function loadScene(scene) {
-  currentScene = scene;
-  const canvas = document.getElementById('panorama-canvas');
+function loadScene(sc) {
+  currentScene = sc;
 
-  canvas.style.background = scene.bg;
-  canvas.style.backgroundImage = `url('${scene.bgImg}')`;
-  canvas.style.backgroundSize = 'cover';
+  // Fade transition & load high-res 360 texture
+  textureLoader.load(sc.bgImg, (texture) => {
+    sphereMesh.material.map = texture;
+    sphereMesh.material.needsUpdate = true;
+    showToast(`Loaded ${sc.name}`, 'info', 1200);
+  });
 
-  rotationX = 0;
-  rotationY = 0;
-  cameraScale = 1;
-  cameraZ = 0;
-
-  updateSpatialStage();
-
-  // Render Waypoints & Hotspots
-  const sceneKey = `${currentMonastery.id}_${scene.id}`;
-  const data = SPATIAL_ELEMENTS[sceneKey] || generateDefaultSpatial(currentMonastery, scene);
-  renderWaypointsAndHotspots(data);
+  // Load 3D Spatial Pins for this scene
+  const key = `${currentMonastery.id}_${sc.id}`;
+  const pins = SPATIAL_PINS[key] || generateDefaultPins(currentMonastery, sc);
+  renderSpatialPins(pins);
 
   closeInfoPanel();
   playSpatialChime();
 }
 
-function generateDefaultSpatial(monastery, scene) {
+function generateDefaultPins(monastery, sc) {
   const scenes = SCENES[monastery.id] || SCENES.rumtek;
-  const nextScene = scenes.find(s => s.id !== scene.id) || scenes[0];
-
-  return {
-    waypoints: [
-      { x: 50, y: 70, targetScene: nextScene.id, label: `👣 Step into ${nextScene.name}`, icon: '🐾' }
-    ],
-    hotspots: monastery.hotspots.slice(0, 2).map((hs, i) => ({
-      x: 30 + i * 40,
-      y: 45,
-      icon: ['🏯', '🪔'][i % 2],
-      label: hs,
-      title: hs,
-      desc: `Sacred spot at ${monastery.name}.`,
-      img: monastery.image
-    }))
-  };
+  const nextScene = scenes.find(s => s.id !== sc.id) || scenes[0];
+  return [
+    { lat: 0, lon: 0, icon: '👣', label: `Step into ${nextScene.name}`, targetScene: nextScene.id, type: 'waypoint' },
+    { lat: 10, lon: 90, icon: '🪔', label: monastery.name, title: monastery.name, desc: monastery.description, img: monastery.image, type: 'hotspot' }
+  ];
 }
 
 // -------------------------------------------------------------
-// RENDER SPATIAL WAYPOINTS & HOTSPOTS
+// 3D SPATIAL PROJECTED PINS (LAT/LON SPHERICAL PROJECTION)
 // -------------------------------------------------------------
-function renderWaypointsAndHotspots(data) {
-  const container = document.getElementById('hotspots-container');
+function renderSpatialPins(pins) {
+  const container = document.getElementById('spatial-pins-container');
+  if (!container) return;
   container.innerHTML = '';
 
-  // Render Walk Waypoints (Moving in 3D Space)
-  if (data.waypoints) {
-    data.waypoints.forEach(wp => {
-      const el = document.createElement('div');
-      el.className = 'waypoint-marker';
-      el.style.left = `${wp.x}%`;
-      el.style.top = `${wp.y}%`;
-      el.innerHTML = `
-        <div class="waypoint-badge">
-          <div class="waypoint-icon">${wp.icon}</div>
-          <span>${wp.label}</span>
-        </div>
-      `;
+  pins.forEach(pin => {
+    const el = document.createElement('div');
+    el.className = 'spatial-pin';
+    el.dataset.lat = pin.lat;
+    el.dataset.lon = pin.lon;
+
+    el.innerHTML = `
+      <div class="pin-card">
+        <div class="pin-icon">${pin.icon}</div>
+        <span>${pin.label}</span>
+      </div>
+    `;
+
+    if (pin.type === 'waypoint') {
       el.addEventListener('click', () => {
         const scenes = SCENES[currentMonastery.id] || SCENES.rumtek;
-        const target = scenes.find(s => s.id === wp.targetScene) || scenes[0];
+        const target = scenes.find(s => s.id === pin.targetScene) || scenes[0];
         performWalkTransition(() => loadScene(target));
       });
-      container.appendChild(el);
-    });
-  }
+    } else {
+      el.addEventListener('click', () => openInfoPanel(pin));
+    }
 
-  // Render Hotspots
-  if (data.hotspots) {
-    data.hotspots.forEach(hs => {
-      const el = document.createElement('div');
-      el.className = 'hotspot';
-      el.style.left = `${hs.x}%`;
-      el.style.top = `${hs.y}%`;
-      el.innerHTML = `
-        <button class="hotspot-btn">
-          <span>${hs.icon}</span>
-        </button>
-        <div class="hotspot-label">${hs.label}</div>
-      `;
-      el.addEventListener('click', () => openInfoPanel(hs));
-      container.appendChild(el);
-    });
+    container.appendChild(el);
+  });
+}
+
+// Update 2D screen positions of 3D spherical pins every frame
+function updateSpatialPins() {
+  const container = document.getElementById('spatial-pins-container');
+  if (!container) return;
+  const pins = container.children;
+  const widthHalf = window.innerWidth / 2;
+  const heightHalf = window.innerHeight / 2;
+
+  for (let i = 0; i < pins.length; i++) {
+    const pin = pins[i];
+    const latDeg = parseFloat(pin.dataset.lat);
+    const lonDeg = parseFloat(pin.dataset.lon);
+
+    // Convert lat/lon degrees to Three.js 3D Vector
+    const phiRad = THREE.MathUtils.degToRad(90 - latDeg);
+    const thetaRad = THREE.MathUtils.degToRad(lonDeg);
+
+    const targetVector = new THREE.Vector3();
+    targetVector.setFromSphericalCoords(450, phiRad, thetaRad);
+
+    // Project 3D coordinate to 2D screen
+    const screenVector = targetVector.clone().project(camera);
+
+    // Check if behind camera lens
+    if (screenVector.z > 1 || screenVector.z < -1) {
+      pin.classList.add('hidden');
+      continue;
+    }
+
+    pin.classList.remove('hidden');
+    const x = (screenVector.x * widthHalf) + widthHalf;
+    const y = -(screenVector.y * heightHalf) + heightHalf;
+
+    pin.style.left = `${x}px`;
+    pin.style.top = `${y}px`;
   }
 }
 
 // -------------------------------------------------------------
-// REAL 3D WALKING DISPLACEMENT ANIMATION
+// REAL CAMERA FORWARD WALKING TRANSITION
 // -------------------------------------------------------------
 function performWalkTransition(callback) {
-  const stage = document.getElementById('panorama-stage');
-  if (!stage) { if (callback) callback(); return; }
-
   playFootstepSound();
-  stage.classList.add('stepping-forward');
 
-  setTimeout(() => {
+  // Tween FOV dolly zoom forward
+  if (window.TWEEN) {
+    new TWEEN.Tween(camera)
+      .to({ fov: 40 }, 400)
+      .easing(TWEEN.Easing.Quadratic.Out)
+      .onUpdate(() => camera.updateProjectionMatrix())
+      .onComplete(() => {
+        if (callback) callback();
+        new TWEEN.Tween(camera)
+          .to({ fov: 75 }, 500)
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .onUpdate(() => camera.updateProjectionMatrix())
+          .start();
+      })
+      .start();
+  } else {
     if (callback) callback();
-    stage.classList.remove('stepping-forward');
-    stage.style.transform = 'scale(1)';
-  }, 600);
+  }
 }
 
 function stepForward() {
   playFootstepSound();
-  cameraZ += 40;
-  cameraScale = Math.min(1.8, cameraScale + 0.08);
-  triggerWalkBob();
-  updateSpatialStage();
+  targetFov = Math.max(45, camera.fov - 8);
+  targetLat += 2;
   showToast('👣 Walking forward...', 'info', 800);
 }
 
 function stepBackward() {
   playFootstepSound();
-  cameraZ = Math.max(-50, cameraZ - 40);
-  cameraScale = Math.max(0.9, cameraScale - 0.08);
-  triggerWalkBob();
-  updateSpatialStage();
+  targetFov = Math.min(95, camera.fov + 8);
+  targetLat -= 2;
   showToast('👣 Stepping back...', 'info', 800);
 }
 
-function turnLeft() {
-  rotationY -= 15;
-  updateSpatialStage();
-}
+function turnLeft() { targetLon -= 15; }
+function turnRight() { targetLon += 15; }
 
-function turnRight() {
-  rotationY += 15;
-  updateSpatialStage();
-}
+// -------------------------------------------------------------
+// THREE.JS ANIMATION LOOP & INERTIA DAMPING
+// -------------------------------------------------------------
+function animate(time) {
+  requestAnimationFrame(animate);
 
-function triggerWalkBob() {
-  const stage = document.getElementById('panorama-stage');
-  stage.classList.add('walking');
-  setTimeout(() => stage.classList.remove('walking'), 600);
+  if (window.TWEEN) TWEEN.update(time);
+
+  // Smooth Momentum Damping (Inertia)
+  lon += (targetLon - lon) * 0.08;
+  lat += (targetLat - lat) * 0.08;
+  fov += (targetFov - fov) * 0.08;
+
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+
+  lat = Math.max(-85, Math.min(85, lat));
+  phi = THREE.MathUtils.degToRad(90 - lat);
+  theta = THREE.MathUtils.degToRad(lon);
+
+  camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+  camera.target.y = 500 * Math.cos(phi);
+  camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+
+  camera.lookAt(camera.target);
+
+  // Rotate atmospheric particles gently
+  if (particles) {
+    particles.rotation.y += 0.0005;
+  }
+
+  // Update projected 3D pins on 2D screen
+  updateSpatialPins();
+
+  renderer.render(scene, camera);
 }
 
 // -------------------------------------------------------------
-// SPATIAL MOUSE PARALLAX & DRAG CONTROLS
+// MOUSE / TOUCH / GYRO CONTROLS
 // -------------------------------------------------------------
-function initSpatialMousePan() {
-  const viewer = document.getElementById('tour-viewer');
+function onPointerDown(event) {
+  if (event.isPrimary === false) return;
 
-  // VisionOS Mouse Depth Parallax
-  viewer.addEventListener('mousemove', e => {
-    if (isDragging) return;
-    const rect = viewer.getBoundingClientRect();
-    const relX = (e.clientX - rect.left) / rect.width - 0.5;
-    const relY = (e.clientY - rect.top) / rect.height - 0.5;
+  isUserInteracting = true;
+  onPointerDownPointerX = event.clientX;
+  onPointerDownPointerY = event.clientY;
 
-    // Subtle 3D Gyro Tilt effect on spatial stage
-    const tiltX = relY * -12;
-    const tiltY = relX * 16;
-    const stage = document.getElementById('panorama-stage');
-    stage.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY + rotationY * 0.2}deg) scale(${cameraScale}) translateZ(${cameraZ}px)`;
-  });
+  onPointerDownLon = lon;
+  onPointerDownLat = lat;
 
-  // Drag Panning
-  viewer.addEventListener('mousedown', e => {
-    isDragging = true;
-    startMouseX = e.clientX;
-    startMouseY = e.clientY;
-  });
+  document.addEventListener('pointermove', onPointerMove);
+  document.addEventListener('pointerup', onPointerUp);
+}
+
+function onPointerMove(event) {
+  if (event.isPrimary === false || !isUserInteracting) return;
+
+  targetLon = (onPointerDownPointerX - event.clientX) * 0.18 + onPointerDownLon;
+  targetLat = (event.clientY - onPointerDownPointerY) * 0.18 + onPointerDownLat;
+}
+
+function onPointerUp(event) {
+  if (event.isPrimary === false) return;
+  isUserInteracting = false;
+  document.removeEventListener('pointermove', onPointerMove);
+  document.removeEventListener('pointerup', onPointerUp);
+}
+
+function onDocumentMouseWheel(event) {
+  event.preventDefault();
+  targetFov = Math.max(30, Math.min(100, targetFov + event.deltaY * 0.05));
+}
+
+function onWindowResize() {
+  const container = document.getElementById('tour-viewer');
+  if (!container || !renderer || !camera) return;
+
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(container.clientWidth, container.clientHeight);
+}
+
+// -------------------------------------------------------------
+// VISION OS RETICLE physics
+// -------------------------------------------------------------
+function initReticleTracking() {
+  const reticle = document.getElementById('spatial-reticle');
+  if (!reticle) return;
+
+  let reticleX = window.innerWidth / 2;
+  let reticleY = window.innerHeight / 2;
+  let mouseX = reticleX, mouseY = reticleY;
 
   window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const dx = e.clientX - startMouseX;
-    const dy = e.clientY - startMouseY;
-    startMouseX = e.clientX;
-    startMouseY = e.clientY;
-
-    rotationY += dx * 0.25;
-    rotationX = Math.max(-30, Math.min(30, rotationX - dy * 0.2));
-    updateSpatialStage();
+    mouseX = e.clientX;
+    mouseY = e.clientY;
   });
 
-  window.addEventListener('mouseup', () => isDragging = false);
-}
+  function animateReticle() {
+    reticleX += (mouseX - reticleX) * 0.25;
+    reticleY += (mouseY - reticleY) * 0.25;
+    reticle.style.left = `${reticleX}px`;
+    reticle.style.top = `${reticleY}px`;
+    requestAnimationFrame(animateReticle);
+  }
+  animateReticle();
 
-function updateSpatialStage() {
-  const canvas = document.getElementById('panorama-canvas');
-  const stage = document.getElementById('panorama-stage');
+  document.addEventListener('mouseover', e => {
+    if (e.target.closest('button, .monastery-list-item, .spatial-pin, .spatial-btn, .walk-btn')) {
+      reticle.classList.add('hovering');
+    } else {
+      reticle.classList.remove('hovering');
+    }
+  });
 
-  const bgPosX = (((rotationY % 360) + 360) % 360) / 3.6;
-  const bgPosY = 50 + rotationX * 0.4;
-
-  canvas.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
-  stage.style.transform = `scale(${cameraScale}) translateZ(${cameraZ}px)`;
+  document.addEventListener('mousedown', () => reticle.classList.add('pinching'));
+  document.addEventListener('mouseup', () => reticle.classList.remove('pinching'));
 }
 
 // -------------------------------------------------------------
-// KEYBOARD CONTROLS (W / A / S / D / ARROWS)
+// KEYBOARD CONTROLS (W/A/S/D)
 // -------------------------------------------------------------
 function initSpatialKeyboard() {
   window.addEventListener('keydown', e => {
-    if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') {
-      stepForward();
-    } else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
-      stepBackward();
-    } else if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
-      turnLeft();
-    } else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') {
-      turnRight();
-    }
+    if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') stepForward();
+    else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') stepBackward();
+    else if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') turnLeft();
+    else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') turnRight();
   });
 }
 
@@ -410,23 +498,15 @@ function initWalkControls() {
 }
 
 // -------------------------------------------------------------
-// SPATIAL CONTROLS BAR
+// UI CONTROLS
 // -------------------------------------------------------------
-function initControls() {
-  document.getElementById('ctrl-zoom-in')?.addEventListener('click', () => {
-    cameraScale = Math.min(2, cameraScale + 0.15);
-    updateSpatialStage();
-  });
-
-  document.getElementById('ctrl-zoom-out')?.addEventListener('click', () => {
-    cameraScale = Math.max(0.8, cameraScale - 0.15);
-    updateSpatialStage();
-  });
+function initUIControls() {
+  document.getElementById('ctrl-zoom-in')?.addEventListener('click', () => { targetFov = Math.max(30, targetFov - 15); });
+  document.getElementById('ctrl-zoom-out')?.addEventListener('click', () => { targetFov = Math.min(100, targetFov + 15); });
 
   document.getElementById('ctrl-reset')?.addEventListener('click', () => {
-    rotationX = 0; rotationY = 0; cameraScale = 1; cameraZ = 0;
-    updateSpatialStage();
-    showToast('Spatial position reset', 'info', 1200);
+    targetLon = 0; targetLat = 0; targetFov = 75;
+    showToast('VR Camera reset', 'info', 1200);
   });
 
   const walkBtn = document.getElementById('ctrl-walk');
@@ -434,11 +514,8 @@ function initControls() {
     isAutoWalking = !isAutoWalking;
     walkBtn.classList.toggle('active', isAutoWalking);
     if (isAutoWalking) {
-      showToast('Auto Walk Mode Activated 🚶‍♂️', 'info', 2000);
-      autoWalkTimer = setInterval(() => {
-        stepForward();
-        rotationY += 0.5;
-      }, 1500);
+      showToast('Auto Walk Activated 🚶‍♂️', 'info', 2000);
+      autoWalkTimer = setInterval(() => { targetLon += 0.8; }, 16);
     } else {
       clearInterval(autoWalkTimer);
       showToast('Auto Walk Paused', 'info', 1200);
@@ -451,7 +528,7 @@ function initControls() {
     audioBtn.classList.toggle('active', audioEnabled);
     const status = document.getElementById('spatial-sound-status');
     if (status) status.textContent = audioEnabled ? 'Spatial Audio Active' : 'Audio Muted';
-    showToast(audioEnabled ? '🔊 Spatial Audio Enabled' : '🔇 Muted', 'info', 1200);
+    showToast(audioEnabled ? '🔊 Spatial Audio Active' : '🔇 Muted', 'info', 1200);
   });
 
   document.getElementById('ctrl-fullscreen')?.addEventListener('click', () => {
@@ -465,7 +542,7 @@ function initControls() {
 }
 
 // -------------------------------------------------------------
-// PROCEDURAL WEB AUDIO API (FOOTSTEPS & SACRED CHIMES)
+// PROCEDURAL AUDIO SYNTHESIS
 // -------------------------------------------------------------
 function initAudioContext() {
   if (!audioCtx) {
@@ -483,16 +560,16 @@ function playFootstepSound() {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+    osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.14);
 
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.14);
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.12);
+    osc.stop(audioCtx.currentTime + 0.14);
   } catch(e) {}
 }
 
@@ -505,7 +582,7 @@ function playSpatialChime() {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(528, audioCtx.currentTime); // 528Hz Solfeggio frequency
+    osc.frequency.setValueAtTime(528, audioCtx.currentTime);
 
     gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
@@ -518,15 +595,15 @@ function playSpatialChime() {
 }
 
 // -------------------------------------------------------------
-// INFO PANEL MODAL
+// INFO MODAL
 // -------------------------------------------------------------
-function openInfoPanel(hs) {
+function openInfoPanel(pin) {
   const modal = document.getElementById('info-panel');
   if (!modal) return;
-  document.getElementById('info-panel-title').textContent = hs.title;
-  document.getElementById('info-panel-desc').textContent = hs.desc;
+  document.getElementById('info-panel-title').textContent = pin.title;
+  document.getElementById('info-panel-desc').textContent = pin.desc;
   const img = document.getElementById('info-panel-img');
-  img.src = hs.img;
+  img.src = pin.img;
   modal.classList.add('open');
 }
 
@@ -541,8 +618,7 @@ function initSearch() {
   input?.addEventListener('input', e => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('.monastery-list-item').forEach(item => {
-      const text = item.textContent.toLowerCase();
-      item.style.display = text.includes(q) ? '' : 'none';
+      item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
   });
 }
