@@ -1,5 +1,5 @@
 // =============================================
-// TOUR.JS — Google VR System (Human Eye-Level Ground Standing & Walk Physics)
+// TOUR.JS — Google VR System Engine (Clean & Photorealistic 360 Photo Sphere)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -51,7 +51,7 @@ const SPATIAL_PINS = {
 };
 
 // Three.js & Google VR Core
-let scene, camera, renderer, stereoEffect, sphereMesh, particles, groundRing;
+let scene, camera, renderer, stereoEffect, sphereMesh;
 let isCardboardMode = false;
 let isGyroMode = false;
 
@@ -59,7 +59,7 @@ let currentMonastery = null;
 let currentScene = null;
 let textureLoader = new THREE.TextureLoader();
 
-// Human Standing Eye Height Constant (1.6 meters / 5.2 ft above ground)
+// Human Standing Eye Height (1.6m eye level)
 const EYE_HEIGHT = 1.6;
 let walkStepCount = 0;
 
@@ -99,7 +99,7 @@ function initThreeJS() {
 
   camera = new THREE.PerspectiveCamera(fov, container.clientWidth / container.clientHeight, 0.1, 1100);
   
-  // Set camera to human eye-level standing height (1.6m)
+  // Set camera to human standing eye-level height (1.6m)
   camera.position.set(0, EYE_HEIGHT, 0);
   camera.target = new THREE.Vector3(0, EYE_HEIGHT, -1);
 
@@ -117,12 +117,6 @@ function initThreeJS() {
   sphereMesh.position.set(0, EYE_HEIGHT, 0);
   scene.add(sphereMesh);
 
-  // Standing Footprint Ring on Ground (y = 0)
-  createGroundStandingMarker();
-
-  // Floating Atmospheric Particles
-  createFloatingParticles();
-
   // WebGL Renderer
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -137,46 +131,6 @@ function initThreeJS() {
   container.addEventListener('wheel', onDocumentMouseWheel, { passive: false });
 
   animate();
-}
-
-// Ground Standing Footprint Indicator Ring
-function createGroundStandingMarker() {
-  const ringGeo = new THREE.RingGeometry(0.8, 1.0, 32);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: 0x4285f4,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.5
-  });
-  groundRing = new THREE.Mesh(ringGeo, ringMat);
-  groundRing.rotation.x = -Math.PI / 2; // Flat on floor plane
-  groundRing.position.set(0, 0.05, 0); // Slightly above ground plane
-  scene.add(groundRing);
-}
-
-function createFloatingParticles() {
-  const particleCount = 250;
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-
-  for (let i = 0; i < particleCount * 3; i += 3) {
-    positions[i] = (Math.random() - 0.5) * 400;
-    positions[i + 1] = Math.random() * 200; // Above ground
-    positions[i + 2] = (Math.random() - 0.5) * 400;
-  }
-
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-  const material = new THREE.PointsMaterial({
-    color: 0x4285f4,
-    size: 2.5,
-    transparent: true,
-    opacity: 0.6,
-    blending: THREE.AdditiveBlending
-  });
-
-  particles = new THREE.Points(geometry, material);
-  scene.add(particles);
 }
 
 // -------------------------------------------------------------
@@ -251,7 +205,6 @@ function loadScene(sc) {
 
   // Reset ground position to standing height
   camera.position.set(0, EYE_HEIGHT, 0);
-  if (groundRing) groundRing.position.set(0, 0.05, 0);
 
   closeInfoPanel();
 }
@@ -372,17 +325,12 @@ function stepForward() {
   dir.y = 0; // Move strictly on ground plane
   dir.normalize();
 
-  // Move camera forward on ground
   camera.position.addScaledVector(dir, 1.2);
-  
-  // Natural human step height oscillation (1.6m eye level + step bob)
   camera.position.y = EYE_HEIGHT + Math.sin(walkStepCount * 0.8) * 0.06;
 
-  // Move ground standing footprint marker with player
-  if (groundRing) groundRing.position.set(camera.position.x, 0.05, camera.position.z);
   if (sphereMesh) sphereMesh.position.set(camera.position.x, EYE_HEIGHT, camera.position.z);
 
-  showToast('👣 Stepping forward on ground...', 'info', 800);
+  showToast('👣 Stepping forward...', 'info', 800);
 }
 
 function stepBackward() {
@@ -395,7 +343,6 @@ function stepBackward() {
   camera.position.addScaledVector(dir, -1.2);
   camera.position.y = EYE_HEIGHT + Math.sin(walkStepCount * 0.8) * 0.06;
 
-  if (groundRing) groundRing.position.set(camera.position.x, 0.05, camera.position.z);
   if (sphereMesh) sphereMesh.position.set(camera.position.x, EYE_HEIGHT, camera.position.z);
 
   showToast('👣 Stepping back...', 'info', 800);
@@ -405,7 +352,7 @@ function turnLeft() { targetLon -= 15; }
 function turnRight() { targetLon += 15; }
 
 // -------------------------------------------------------------
-// ANIMATION LOOP & GOOGLE CARDBOARD RENDER
+// ANIMATION LOOP & RENDER
 // -------------------------------------------------------------
 function animate(time) {
   requestAnimationFrame(animate);
@@ -430,8 +377,6 @@ function animate(time) {
 
   camera.lookAt(camera.target);
 
-  if (particles) particles.rotation.y += 0.0005;
-
   updateSpatialPins();
 
   if (isCardboardMode && stereoEffect) {
@@ -442,7 +387,7 @@ function animate(time) {
 }
 
 // -------------------------------------------------------------
-// GYROSCOPE HEAD TRACKING & CONTROLS
+// GYROSCOPE & CONTROLS
 // -------------------------------------------------------------
 function initGyroscopeSensor() {
   if (window.DeviceOrientationEvent) {
@@ -487,8 +432,7 @@ function initGoogleVRControls() {
   document.getElementById('ctrl-reset')?.addEventListener('click', () => {
     targetLon = 0; targetLat = 0; targetFov = 75;
     camera.position.set(0, EYE_HEIGHT, 0);
-    if (groundRing) groundRing.position.set(0, 0.05, 0);
-    showToast('VR Camera Reset to Eye Level', 'info', 1200);
+    showToast('VR Camera Reset', 'info', 1200);
   });
 
   const walkBtn = document.getElementById('ctrl-walk');
