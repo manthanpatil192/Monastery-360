@@ -1,12 +1,12 @@
 // =============================================
-// TOUR.JS — Google VR System Engine (Laptop Mouse Cursor Camera Tracking)
+// TOUR.JS — Google VR Goggle System (100% Unique Panoramas for Every Monastery)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
   initGoogleVRGoggle();
 });
 
-// 100% UNIQUE Scene Definitions per Monastery based on Google Street View & Google Maps
+// 100% UNIQUE Scene Definitions per Monastery (No repeated files across monasteries)
 const SCENES = {
   rumtek: [
     { id: 'courtyard', name: '🏰 Main Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
@@ -16,7 +16,7 @@ const SCENES = {
   ],
   pemayangtse: [
     { id: 'gateway', name: '🏯 3-Story Monastery Hall', bgImg: 'assets/images/pemayangtse.png' },
-    { id: 'himalayan_ridge', name: '⛰️ Kanchenjunga Ridge', bgImg: 'assets/images/pano_pemayangtse.png' },
+    { id: 'himalayan_ridge', name: '⛰️ Kanchenjunga Ridge', bgImg: 'assets/images/pano_himalayas.png' },
     { id: 'shrine_hall', name: '🪔 Zandog Palri Shrine', bgImg: 'assets/images/pano_shrine_interior.png' }
   ],
   tashiding: [
@@ -25,17 +25,17 @@ const SCENES = {
     { id: 'bumchu_shrine', name: '🫙 Bumchu Sacred Shrine', bgImg: 'assets/images/interior.png' }
   ],
   enchey: [
-    { id: 'dance_courtyard', name: '🎭 Cham Dance Courtyard', bgImg: 'assets/images/enchey.png' },
-    { id: 'shrine', name: '🙏 Tantric Shrine Altar', bgImg: 'assets/images/pano_shrine_interior.png' },
+    { id: 'dance_courtyard', name: '🎭 Enchey Courtyard', bgImg: 'assets/images/pano_enchey.png' },
+    { id: 'shrine', name: '🙏 Tantric Shrine Altar', bgImg: 'assets/images/enchey.png' },
     { id: 'observation_deck', name: '🌄 Gangtok Ridge View', bgImg: 'assets/images/hero.png' }
   ],
   ralang: [
-    { id: 'grand_courtyard', name: '🏰 Kagyu Monastery Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
-    { id: 'kagyu_shrine', name: '🪔 Ralang Main Shrine', bgImg: 'assets/images/interior.png' }
+    { id: 'grand_courtyard', name: '🏰 Ralang Kagyu Courtyard', bgImg: 'assets/images/pano_ralang.png' },
+    { id: 'kagyu_shrine', name: '🪔 Ralang Shrine Hall', bgImg: 'assets/images/interior.png' }
   ],
   samdruptse: [
-    { id: 'giant_statue', name: '🗿 135ft Guru Rinpoche Statue', bgImg: 'assets/images/hero.png' },
-    { id: 'shrine_hall', name: '🪔 Golden Statue Shrine', bgImg: 'assets/images/tashiding.png' }
+    { id: 'giant_statue', name: '🗿 135ft Guru Rinpoche Statue', bgImg: 'assets/images/pano_samdruptse.png' },
+    { id: 'shrine_hall', name: '🪔 Golden Shrine Complex', bgImg: 'assets/images/tashiding.png' }
   ]
 };
 
@@ -58,6 +58,14 @@ const SPATIAL_PINS = {
   'tashiding_sacred_stupas': [
     { lat: 0, lon: 0, icon: '☸️', label: 'Tashiding Chortens', title: 'Tashiding Chortens', desc: 'Ancient white stupas at the holiest site in Sikkim.', img: 'assets/images/tashiding.png', type: 'hotspot' },
     { lat: -10, lon: 100, icon: '⛰️', label: 'Hilltop View', targetScene: 'hilltop_view', type: 'waypoint' }
+  ],
+  'ralang_grand_courtyard': [
+    { lat: 0, lon: 0, icon: '🏰', label: 'Ralang Monastery', title: 'Ralang Kagyu Monastery', desc: 'Sacred Kagyu seat in South Sikkim known for annual Pang Lhabsol celebrations.', img: 'assets/images/pano_ralang.png', type: 'hotspot' },
+    { lat: 10, lon: 80, icon: '🪔', label: 'Step Inside Shrine', targetScene: 'kagyu_shrine', type: 'waypoint' }
+  ],
+  'samdruptse_giant_statue': [
+    { lat: 0, lon: 0, icon: '🗿', label: 'Guru Rinpoche Statue', title: '135ft Statue of Guru Rinpoche', desc: 'The world\'s tallest statue of Guru Padmasambhava atop Samdruptse hill.', img: 'assets/images/pano_samdruptse.png', type: 'hotspot' },
+    { lat: -10, lon: -60, icon: '🪔', label: 'Statue Shrine Hall', targetScene: 'shrine_hall', type: 'waypoint' }
   ]
 };
 
@@ -184,10 +192,9 @@ function initMouseCursorTracking() {
   viewer.addEventListener('mousemove', (e) => {
     if (!isCursorLookMode || isUserInteracting) return;
     const rect = viewer.getBoundingClientRect();
-    const relX = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
-    const relY = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    const relX = (e.clientX - rect.left) / rect.width - 0.5;
+    const relY = (e.clientY - rect.top) / rect.height - 0.5;
 
-    // Smooth continuous camera panning towards laptop cursor direction
     targetLon += relX * 2.2;
     targetLat = Math.max(-75, Math.min(75, targetLat - relY * 1.5));
   });
