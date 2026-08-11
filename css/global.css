@@ -1,45 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&family=Cinzel:wght@400;600;700&display=swap');
 
 /* ===========================
-   CSS CUSTOM PROPERTIES
+   CSS CUSTOM PROPERTIES — SIH OFFICIAL LIGHT THEME
 =========================== */
 :root {
   /* Colors */
-  --clr-bg: #07070f;
-  --clr-bg-2: #0d0d1a;
-  --clr-bg-3: #131325;
-  --clr-surface: rgba(255, 255, 255, 0.05);
-  --clr-surface-hover: rgba(255, 255, 255, 0.09);
-  --clr-border: rgba(255, 255, 255, 0.1);
-  --clr-border-accent: rgba(244, 168, 50, 0.35);
+  --clr-bg: #f8f9fa;
+  --clr-bg-2: #ffffff;
+  --clr-bg-3: #f1f3f5;
+  --clr-surface: rgba(0, 0, 0, 0.03);
+  --clr-surface-hover: rgba(0, 0, 0, 0.06);
+  --clr-border: rgba(0, 0, 0, 0.1);
+  --clr-border-accent: rgba(217, 119, 6, 0.35);
 
   /* Accent Colors */
-  --clr-gold: #f4a832;
-  --clr-gold-light: #f9c76a;
-  --clr-gold-dark: #c4841a;
-  --clr-vermillion: #e05c2a;
-  --clr-crimson: #c0392b;
-  --clr-saffron: #ff8c00;
-  --clr-maroon: #7b1a1a;
-  --clr-teal: #2a9d8f;
-  --clr-purple: #6a3d9a;
+  --clr-gold: #d97706;
+  --clr-gold-light: #f59e0b;
+  --clr-gold-dark: #b45309;
+  --clr-vermillion: #ea580c;
+  --clr-crimson: #dc2626;
+  --clr-saffron: #d97706;
+  --clr-maroon: #991b1b;
+  --clr-teal: #0d9488;
+  --clr-purple: #7c3aed;
 
   /* Text Colors */
-  --clr-text: #f0e8d5;
-  --clr-text-muted: rgba(240, 232, 213, 0.6);
-  --clr-text-faint: rgba(240, 232, 213, 0.35);
-  --clr-heading: #ffffff;
+  --clr-text: #2d3748;
+  --clr-text-muted: #64748b;
+  --clr-text-faint: #94a3b8;
+  --clr-heading: #0f172a;
 
   /* Gradients */
-  --grad-gold: linear-gradient(135deg, #f4a832, #e05c2a);
-  --grad-hero: linear-gradient(180deg, rgba(7,7,15,0) 0%, rgba(7,7,15,0.7) 60%, rgba(7,7,15,1) 100%);
-  --grad-card: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
-  --grad-glow: radial-gradient(circle at 50% 50%, rgba(244,168,50,0.15), transparent 70%);
+  --grad-gold: linear-gradient(135deg, #d97706, #ea580c);
+  --grad-hero: linear-gradient(180deg, rgba(248,249,250,0) 0%, rgba(248,249,250,0.85) 60%, rgba(248,249,250,1) 100%);
+  --grad-card: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --grad-glow: radial-gradient(circle at 50% 50%, rgba(217,119,6,0.1), transparent 70%);
 
   /* Glass Effect */
-  --glass-bg: rgba(13, 13, 26, 0.7);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   --glass-blur: blur(20px);
 
   /* Typography */
@@ -58,9 +58,9 @@
   --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Shadows */
-  --shadow-glow-gold: 0 0 30px rgba(244, 168, 50, 0.3);
-  --shadow-glow-soft: 0 20px 60px rgba(0, 0, 0, 0.6);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow-gold: 0 0 30px rgba(217, 119, 6, 0.25);
+  --shadow-glow-soft: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 /* ===========================
@@ -92,9 +92,9 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(ellipse at 20% 20%, rgba(244, 168, 50, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(224, 92, 42, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 100%, rgba(106, 61, 154, 0.05) 0%, transparent 60%);
+    radial-gradient(ellipse at 20% 20%, rgba(217, 119, 6, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(234, 88, 12, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(124, 58, 237, 0.03) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
 }
@@ -149,6 +149,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: 700;
   margin-top: 0.5rem;
+  color: var(--clr-heading);
 }
 
 .section-subtitle {
@@ -227,7 +228,7 @@ h1, h2, h3, h4, h5, h6 {
    SELECTION
 =========================== */
 ::selection {
-  background: rgba(244, 168, 50, 0.3);
+  background: rgba(217, 119, 6, 0.2);
   color: var(--clr-heading);
 }
 

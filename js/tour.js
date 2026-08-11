@@ -187,8 +187,8 @@ function renderMonasteryList() {
     item.innerHTML = `
       <img src="${m.image}" alt="${m.name}" style="width:48px;height:48px;border-radius:10px;object-fit:cover" />
       <div style="flex:1;min-width:0">
-        <div style="font-size:0.85rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
-        <div style="font-size:0.72rem;color:var(--clr-text-muted)">📍 ${m.district}</div>
+        <div class="monastery-list-item-title">${m.name}</div>
+        <div class="monastery-list-item-sub">📍 ${m.district}</div>
       </div>
     `;
     item.addEventListener('click', () => loadMonastery(m));
