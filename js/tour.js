@@ -1,12 +1,12 @@
 // =============================================
-// SPATIAL TOUR.JS — Three.js WebGL 360° VR Engine
+// TOUR.JS — Google VR System Engine (Cardboard & Photo Sphere)
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  initRealVR();
+  initGoogleVR();
 });
 
-// Scene definitions with photorealistic 360 panoramic textures & 3D pin coordinates
+// Scene definitions with 8K photorealistic 360 Photo Spheres
 const SCENES = {
   rumtek: [
     { id: 'courtyard', name: '🏰 Main Courtyard', bgImg: 'assets/images/pano_rumtek_courtyard.png' },
@@ -28,7 +28,7 @@ const SCENES = {
   ]
 };
 
-// 3D Spatial Pins (Latitude, Longitude coordinates in degrees on 360 sphere)
+// 3D Spatial Pins
 const SPATIAL_PINS = {
   'rumtek_courtyard': [
     { lat: 10, lon: 45, icon: '🪔', label: 'Step Inside Shrine', targetScene: 'shrine', type: 'waypoint' },
@@ -50,8 +50,11 @@ const SPATIAL_PINS = {
   ]
 };
 
-// Three.js Core Globals
-let scene, camera, renderer, sphereMesh, particles;
+// Three.js & Google VR Core
+let scene, camera, renderer, stereoEffect, sphereMesh, particles;
+let isCardboardMode = false;
+let isGyroMode = false;
+
 let currentMonastery = null;
 let currentScene = null;
 let textureLoader = new THREE.TextureLoader();
@@ -67,42 +70,38 @@ let fov = 75;
 let targetFov = 75;
 let isAutoWalking = false;
 let autoWalkTimer = null;
-let audioEnabled = true;
 
-// Web Audio API
-let audioCtx = null;
+// Gyro Sensors
+let deviceAlpha = 0, deviceBeta = 0, deviceGamma = 0;
 
-function initRealVR() {
+function initGoogleVR() {
   initThreeJS();
-  initReticleTracking();
   renderMonasteryList();
   loadMonastery(MONASTERIES[0]);
   initWalkControls();
   initSpatialKeyboard();
-  initUIControls();
+  initGoogleVRControls();
+  initGyroscopeSensor();
   initSearch();
 
-  // Handle window resize
   window.addEventListener('resize', onWindowResize);
 }
 
 // -------------------------------------------------------------
-// THREE.JS WEBGL 3D SPHERICAL ENGINE INITIALIZATION
+// THREE.JS & STEREOEFFECT (GOOGLE CARDBOARD 3D VR)
 // -------------------------------------------------------------
 function initThreeJS() {
   const container = document.getElementById('tour-viewer');
   const canvas = document.getElementById('webgl-canvas');
 
-  // Scene
   scene = new THREE.Scene();
 
-  // Camera
   camera = new THREE.PerspectiveCamera(fov, container.clientWidth / container.clientHeight, 1, 1100);
   camera.target = new THREE.Vector3(0, 0, 0);
 
-  // 360 Inner Sphere Geometry
+  // 360 Photo Sphere Geometry
   const geometry = new THREE.SphereGeometry(500, 60, 40);
-  geometry.scale(-1, 1, 1); // Flip inside out
+  geometry.scale(-1, 1, 1); // Flip inside out for spherical interior
 
   const material = new THREE.MeshBasicMaterial({
     map: null,
@@ -113,7 +112,7 @@ function initThreeJS() {
   sphereMesh = new THREE.Mesh(geometry, material);
   scene.add(sphereMesh);
 
-  // Floating Atmospheric Dust Particles (3D Depth)
+  // Atmospheric Particles
   createFloatingParticles();
 
   // WebGL Renderer
@@ -121,17 +120,18 @@ function initThreeJS() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(container.clientWidth, container.clientHeight);
 
-  // Pointer / Drag Event Listeners
+  // Google Cardboard Stereo Effect Engine
+  if (typeof THREE.StereoEffect !== 'undefined') {
+    stereoEffect = new THREE.StereoEffect(renderer);
+    stereoEffect.setSize(container.clientWidth, container.clientHeight);
+  }
+
   container.addEventListener('pointerdown', onPointerDown);
   container.addEventListener('wheel', onDocumentMouseWheel, { passive: false });
 
-  // Animation Loop
   animate();
 }
 
-// -------------------------------------------------------------
-// FLOATING 3D DUST PARTICLES (ATMOSPHERIC REALISM)
-// -------------------------------------------------------------
 function createFloatingParticles() {
   const particleCount = 250;
   const geometry = new THREE.BufferGeometry();
@@ -146,7 +146,7 @@ function createFloatingParticles() {
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
   const material = new THREE.PointsMaterial({
-    color: 0xf4a832,
+    color: 0x4285f4,
     size: 2.5,
     transparent: true,
     opacity: 0.6,
@@ -158,7 +158,7 @@ function createFloatingParticles() {
 }
 
 // -------------------------------------------------------------
-// LOAD MONASTERY & PANORAMA TEXTURE
+// LOAD MONASTERY & PHOTO SPHERE TEXTURE
 // -------------------------------------------------------------
 function renderMonasteryList() {
   const list = document.getElementById('monastery-list');
@@ -217,20 +217,17 @@ function renderSceneTabs(scenes) {
 function loadScene(sc) {
   currentScene = sc;
 
-  // Fade transition & load high-res 360 texture
   textureLoader.load(sc.bgImg, (texture) => {
     sphereMesh.material.map = texture;
     sphereMesh.material.needsUpdate = true;
-    showToast(`Loaded ${sc.name}`, 'info', 1200);
+    showToast(`Google Photo Sphere: ${sc.name}`, 'info', 1200);
   });
 
-  // Load 3D Spatial Pins for this scene
   const key = `${currentMonastery.id}_${sc.id}`;
   const pins = SPATIAL_PINS[key] || generateDefaultPins(currentMonastery, sc);
   renderSpatialPins(pins);
 
   closeInfoPanel();
-  playSpatialChime();
 }
 
 function generateDefaultPins(monastery, sc) {
@@ -243,7 +240,7 @@ function generateDefaultPins(monastery, sc) {
 }
 
 // -------------------------------------------------------------
-// 3D SPATIAL PROJECTED PINS (LAT/LON SPHERICAL PROJECTION)
+// 3D SPATIAL PINS PROJECTION
 // -------------------------------------------------------------
 function renderSpatialPins(pins) {
   const container = document.getElementById('spatial-pins-container');
@@ -277,10 +274,16 @@ function renderSpatialPins(pins) {
   });
 }
 
-// Update 2D screen positions of 3D spherical pins every frame
 function updateSpatialPins() {
   const container = document.getElementById('spatial-pins-container');
   if (!container) return;
+
+  if (isCardboardMode) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = '';
+
   const pins = container.children;
   const widthHalf = window.innerWidth / 2;
   const heightHalf = window.innerHeight / 2;
@@ -290,17 +293,14 @@ function updateSpatialPins() {
     const latDeg = parseFloat(pin.dataset.lat);
     const lonDeg = parseFloat(pin.dataset.lon);
 
-    // Convert lat/lon degrees to Three.js 3D Vector
     const phiRad = THREE.MathUtils.degToRad(90 - latDeg);
     const thetaRad = THREE.MathUtils.degToRad(lonDeg);
 
     const targetVector = new THREE.Vector3();
     targetVector.setFromSphericalCoords(450, phiRad, thetaRad);
 
-    // Project 3D coordinate to 2D screen
     const screenVector = targetVector.clone().project(camera);
 
-    // Check if behind camera lens
     if (screenVector.z > 1 || screenVector.z < -1) {
       pin.classList.add('hidden');
       continue;
@@ -316,12 +316,9 @@ function updateSpatialPins() {
 }
 
 // -------------------------------------------------------------
-// REAL CAMERA FORWARD WALKING TRANSITION
+// CAMERA MOTION & WALKING TRANSITION
 // -------------------------------------------------------------
 function performWalkTransition(callback) {
-  playFootstepSound();
-
-  // Tween FOV dolly zoom forward
   if (window.TWEEN) {
     new TWEEN.Tween(camera)
       .to({ fov: 40 }, 400)
@@ -342,14 +339,12 @@ function performWalkTransition(callback) {
 }
 
 function stepForward() {
-  playFootstepSound();
   targetFov = Math.max(45, camera.fov - 8);
   targetLat += 2;
   showToast('👣 Walking forward...', 'info', 800);
 }
 
 function stepBackward() {
-  playFootstepSound();
   targetFov = Math.min(95, camera.fov + 8);
   targetLat -= 2;
   showToast('👣 Stepping back...', 'info', 800);
@@ -359,14 +354,14 @@ function turnLeft() { targetLon -= 15; }
 function turnRight() { targetLon += 15; }
 
 // -------------------------------------------------------------
-// THREE.JS ANIMATION LOOP & INERTIA DAMPING
+// ANIMATION LOOP & GOOGLE CARDBOARD RENDER
 // -------------------------------------------------------------
 function animate(time) {
   requestAnimationFrame(animate);
 
   if (window.TWEEN) TWEEN.update(time);
 
-  // Smooth Momentum Damping (Inertia)
+  // Smooth Inertia
   lon += (targetLon - lon) * 0.08;
   lat += (targetLat - lat) * 0.08;
   fov += (targetFov - fov) * 0.08;
@@ -384,27 +379,96 @@ function animate(time) {
 
   camera.lookAt(camera.target);
 
-  // Rotate atmospheric particles gently
-  if (particles) {
-    particles.rotation.y += 0.0005;
-  }
+  if (particles) particles.rotation.y += 0.0005;
 
-  // Update projected 3D pins on 2D screen
   updateSpatialPins();
 
-  renderer.render(scene, camera);
+  // Render Google Cardboard Stereo split-screen if active
+  if (isCardboardMode && stereoEffect) {
+    stereoEffect.render(scene, camera);
+  } else {
+    renderer.render(scene, camera);
+  }
 }
 
 // -------------------------------------------------------------
-// MOUSE / TOUCH / GYRO CONTROLS
+// GYROSCOPE HEAD TRACKING & CARDBOARD TOGGLE
+// -------------------------------------------------------------
+function initGyroscopeSensor() {
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', (e) => {
+      if (!isGyroMode) return;
+      if (e.alpha !== null && e.beta !== null) {
+        targetLon = e.alpha;
+        targetLat = e.beta - 45;
+      }
+    }, true);
+  }
+}
+
+function initGoogleVRControls() {
+  // Google Cardboard VR Toggle
+  const cardboardBtn = document.getElementById('ctrl-cardboard');
+  cardboardBtn?.addEventListener('click', () => {
+    isCardboardMode = !isCardboardMode;
+    cardboardBtn.classList.toggle('active', isCardboardMode);
+    document.getElementById('cardboard-overlay')?.classList.toggle('active', isCardboardMode);
+
+    if (isCardboardMode) {
+      if (!document.fullscreenElement) {
+        document.getElementById('tour-viewer')?.requestFullscreen?.().catch(() => {});
+      }
+      showToast('🥽 Google Cardboard VR Mode Active', 'info', 2500);
+    } else {
+      showToast('Exited Google Cardboard Mode', 'info', 1200);
+    }
+    onWindowResize();
+  });
+
+  // Gyro Motion Toggle
+  const gyroBtn = document.getElementById('ctrl-gyro');
+  gyroBtn?.addEventListener('click', () => {
+    isGyroMode = !isGyroMode;
+    gyroBtn.classList.toggle('active', isGyroMode);
+    showToast(isGyroMode ? '📱 Gyro Motion Head Tracking Active' : 'Gyro Tracking Off', 'info', 1500);
+  });
+
+  document.getElementById('ctrl-zoom-in')?.addEventListener('click', () => { targetFov = Math.max(30, targetFov - 15); });
+  document.getElementById('ctrl-zoom-out')?.addEventListener('click', () => { targetFov = Math.min(100, targetFov + 15); });
+
+  document.getElementById('ctrl-reset')?.addEventListener('click', () => {
+    targetLon = 0; targetLat = 0; targetFov = 75;
+    showToast('VR Camera Reset', 'info', 1200);
+  });
+
+  const walkBtn = document.getElementById('ctrl-walk');
+  walkBtn?.addEventListener('click', () => {
+    isAutoWalking = !isAutoWalking;
+    walkBtn.classList.toggle('active', isAutoWalking);
+    if (isAutoWalking) {
+      showToast('Auto Walk Activated 🚶‍♂️', 'info', 2000);
+      autoWalkTimer = setInterval(() => { targetLon += 0.8; }, 16);
+    } else {
+      clearInterval(autoWalkTimer);
+      showToast('Auto Walk Paused', 'info', 1200);
+    }
+  });
+
+  document.getElementById('ctrl-fullscreen')?.addEventListener('click', () => {
+    const viewer = document.getElementById('tour-viewer');
+    if (!document.fullscreenElement) viewer.requestFullscreen?.().catch(() => {});
+    else document.exitFullscreen?.();
+  });
+}
+
+// -------------------------------------------------------------
+// EVENT LISTENERS & UTILS
 // -------------------------------------------------------------
 function onPointerDown(event) {
   if (event.isPrimary === false) return;
-
   isUserInteracting = true;
   onPointerDownPointerX = event.clientX;
   onPointerDownPointerY = event.clientY;
-
   onPointerDownLon = lon;
   onPointerDownLat = lat;
 
@@ -414,7 +478,6 @@ function onPointerDown(event) {
 
 function onPointerMove(event) {
   if (event.isPrimary === false || !isUserInteracting) return;
-
   targetLon = (onPointerDownPointerX - event.clientX) * 0.18 + onPointerDownLon;
   targetLat = (event.clientY - onPointerDownPointerY) * 0.18 + onPointerDownLat;
 }
@@ -439,48 +502,12 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(container.clientWidth, container.clientHeight);
-}
 
-// -------------------------------------------------------------
-// VISION OS RETICLE physics
-// -------------------------------------------------------------
-function initReticleTracking() {
-  const reticle = document.getElementById('spatial-reticle');
-  if (!reticle) return;
-
-  let reticleX = window.innerWidth / 2;
-  let reticleY = window.innerHeight / 2;
-  let mouseX = reticleX, mouseY = reticleY;
-
-  window.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  function animateReticle() {
-    reticleX += (mouseX - reticleX) * 0.25;
-    reticleY += (mouseY - reticleY) * 0.25;
-    reticle.style.left = `${reticleX}px`;
-    reticle.style.top = `${reticleY}px`;
-    requestAnimationFrame(animateReticle);
+  if (stereoEffect) {
+    stereoEffect.setSize(container.clientWidth, container.clientHeight);
   }
-  animateReticle();
-
-  document.addEventListener('mouseover', e => {
-    if (e.target.closest('button, .monastery-list-item, .spatial-pin, .spatial-btn, .walk-btn')) {
-      reticle.classList.add('hovering');
-    } else {
-      reticle.classList.remove('hovering');
-    }
-  });
-
-  document.addEventListener('mousedown', () => reticle.classList.add('pinching'));
-  document.addEventListener('mouseup', () => reticle.classList.remove('pinching'));
 }
 
-// -------------------------------------------------------------
-// KEYBOARD CONTROLS (W/A/S/D)
-// -------------------------------------------------------------
 function initSpatialKeyboard() {
   window.addEventListener('keydown', e => {
     if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') stepForward();
@@ -497,106 +524,6 @@ function initWalkControls() {
   document.getElementById('walk-right')?.addEventListener('click', turnRight);
 }
 
-// -------------------------------------------------------------
-// UI CONTROLS
-// -------------------------------------------------------------
-function initUIControls() {
-  document.getElementById('ctrl-zoom-in')?.addEventListener('click', () => { targetFov = Math.max(30, targetFov - 15); });
-  document.getElementById('ctrl-zoom-out')?.addEventListener('click', () => { targetFov = Math.min(100, targetFov + 15); });
-
-  document.getElementById('ctrl-reset')?.addEventListener('click', () => {
-    targetLon = 0; targetLat = 0; targetFov = 75;
-    showToast('VR Camera reset', 'info', 1200);
-  });
-
-  const walkBtn = document.getElementById('ctrl-walk');
-  walkBtn?.addEventListener('click', () => {
-    isAutoWalking = !isAutoWalking;
-    walkBtn.classList.toggle('active', isAutoWalking);
-    if (isAutoWalking) {
-      showToast('Auto Walk Activated 🚶‍♂️', 'info', 2000);
-      autoWalkTimer = setInterval(() => { targetLon += 0.8; }, 16);
-    } else {
-      clearInterval(autoWalkTimer);
-      showToast('Auto Walk Paused', 'info', 1200);
-    }
-  });
-
-  const audioBtn = document.getElementById('ctrl-audio');
-  audioBtn?.addEventListener('click', () => {
-    audioEnabled = !audioEnabled;
-    audioBtn.classList.toggle('active', audioEnabled);
-    const status = document.getElementById('spatial-sound-status');
-    if (status) status.textContent = audioEnabled ? 'Spatial Audio Active' : 'Audio Muted';
-    showToast(audioEnabled ? '🔊 Spatial Audio Active' : '🔇 Muted', 'info', 1200);
-  });
-
-  document.getElementById('ctrl-fullscreen')?.addEventListener('click', () => {
-    const viewer = document.getElementById('tour-viewer');
-    if (!document.fullscreenElement) {
-      viewer.requestFullscreen?.().catch(() => {});
-    } else {
-      document.exitFullscreen?.();
-    }
-  });
-}
-
-// -------------------------------------------------------------
-// PROCEDURAL AUDIO SYNTHESIS
-// -------------------------------------------------------------
-function initAudioContext() {
-  if (!audioCtx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (AudioContext) audioCtx = new AudioContext();
-  }
-}
-
-function playFootstepSound() {
-  if (!audioEnabled) return;
-  initAudioContext();
-  if (!audioCtx) return;
-
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(110, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.14);
-
-    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.14);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.14);
-  } catch(e) {}
-}
-
-function playSpatialChime() {
-  if (!audioEnabled) return;
-  initAudioContext();
-  if (!audioCtx) return;
-
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(528, audioCtx.currentTime);
-
-    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 1.2);
-  } catch(e) {}
-}
-
-// -------------------------------------------------------------
-// INFO MODAL
-// -------------------------------------------------------------
 function openInfoPanel(pin) {
   const modal = document.getElementById('info-panel');
   if (!modal) return;

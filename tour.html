@@ -3,21 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° Real VR Spatial Tour — VisionOS Experience — Monastery 360</title>
-  <meta name="description" content="Photorealistic 360° WebGL Spherical Virtual Tour with real 3D camera movement, spatial audio, and Apple VisionOS eye-tracking simulation." />
+  <title>360° Google VR System — Monastery 360</title>
+  <meta name="description" content="Official Google VR Cardboard & WebXR 360° Photo Sphere Experience for Sikkim Monasteries." />
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/animations.css" />
-  <!-- Three.js WebGL 3D Engine & Tween.js -->
+  <!-- Three.js Engine & StereoEffect for Google VR Cardboard -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/effects/StereoEffect.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 
   <style>
-    /* ===== REAL 360 WEBGL SPATIAL STYLES ===== */
+    /* ===== GOOGLE VR SYSTEM STYLES ===== */
     :root {
-      --spatial-glass: rgba(12, 12, 24, 0.55);
-      --spatial-border: rgba(255, 255, 255, 0.2);
-      --spatial-glow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      --gvr-glass: rgba(18, 18, 28, 0.65);
+      --gvr-border: rgba(255, 255, 255, 0.22);
+      --gvr-google-red: #ea4335;
+      --gvr-google-blue: #4285f4;
+      --gvr-google-yellow: #fbbc05;
+      --gvr-google-green: #34a853;
     }
 
     body {
@@ -35,13 +39,13 @@
       position: relative;
     }
 
-    /* SIDEBAR - VISION OS GLASS */
+    /* GOOGLE VR SIDEBAR */
     .tour-sidebar {
-      background: var(--spatial-glass);
-      backdrop-filter: blur(35px) saturate(200%);
-      -webkit-backdrop-filter: blur(35px) saturate(200%);
-      border-right: 1px solid var(--spatial-border);
-      box-shadow: var(--spatial-glow);
+      background: var(--gvr-glass);
+      backdrop-filter: blur(35px) saturate(180%);
+      -webkit-backdrop-filter: blur(35px) saturate(180%);
+      border-right: 1px solid var(--gvr-border);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -51,8 +55,8 @@
 
     .sidebar-header {
       padding: 24px;
-      border-bottom: 1px solid var(--spatial-border);
-      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--gvr-border);
+      background: rgba(255, 255, 255, 0.04);
       position: sticky;
       top: 0;
       z-index: 10;
@@ -66,13 +70,13 @@
       color: var(--clr-gold);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .sidebar-search input {
       width: 100%;
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--spatial-border);
+      border: 1px solid var(--gvr-border);
       border-radius: 12px;
       padding: 10px 14px 10px 38px;
       color: var(--clr-text);
@@ -83,8 +87,8 @@
 
     .sidebar-search input:focus {
       background: rgba(255, 255, 255, 0.15);
-      border-color: var(--clr-gold);
-      box-shadow: 0 0 20px rgba(244, 168, 50, 0.3);
+      border-color: var(--gvr-google-blue);
+      box-shadow: 0 0 20px rgba(66, 133, 244, 0.3);
     }
 
     .monastery-list-item {
@@ -105,12 +109,12 @@
     }
 
     .monastery-list-item.active {
-      background: rgba(244, 168, 50, 0.18);
-      border-color: rgba(244, 168, 50, 0.6);
+      background: rgba(66, 133, 244, 0.18);
+      border-color: rgba(66, 133, 244, 0.6);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
 
-    /* WEBGL 3D CANVAS STAGE */
+    /* GOOGLE VR 3D STAGE */
     .tour-viewer {
       position: relative;
       overflow: hidden;
@@ -120,9 +124,7 @@
       height: 100%;
     }
 
-    .tour-viewer:active {
-      cursor: grabbing;
-    }
+    .tour-viewer:active { cursor: grabbing; }
 
     #webgl-canvas {
       width: 100%;
@@ -130,44 +132,53 @@
       display: block;
     }
 
-    /* VISION OS RETICLE */
-    .spatial-reticle {
-      position: fixed;
-      width: 26px;
-      height: 26px;
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%) scale(1);
-      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    /* GOOGLE VR HEADS-UP DISPLAY (HUD) */
+    .gvr-hud-header {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: var(--gvr-glass);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid var(--gvr-border);
+      border-radius: 100px;
+      padding: 10px 24px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 16px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
     }
 
-    .spatial-reticle::after {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--clr-gold);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--clr-gold);
+    .gvr-logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
     }
 
-    .spatial-reticle.hovering {
-      transform: translate(-50%, -50%) scale(1.8);
-      border-color: var(--clr-gold);
-      background: rgba(244, 168, 50, 0.25);
+    .gvr-logo-dots {
+      display: flex;
+      gap: 3px;
     }
 
-    .spatial-reticle.pinching {
-      transform: translate(-50%, -50%) scale(0.65);
-      background: var(--clr-gold);
+    .gvr-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .gvr-dot.blue { background: var(--gvr-google-blue); }
+    .gvr-dot.red { background: var(--gvr-google-red); }
+    .gvr-dot.yellow { background: var(--gvr-google-yellow); }
+    .gvr-dot.green { background: var(--gvr-google-green); }
+
+    .hud-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--clr-heading);
     }
 
-    /* 3D SPATIAL PROJECTED PINS */
+    /* GOOGLE VR 3D PROJECTED PINS */
     .spatial-pin {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -178,22 +189,19 @@
       will-change: transform, left, top;
     }
 
-    .spatial-pin.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+    .spatial-pin.hidden { opacity: 0; pointer-events: none; }
 
     .pin-card {
-      background: rgba(10, 10, 20, 0.82);
+      background: rgba(15, 15, 25, 0.85);
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(244, 168, 50, 0.7);
+      border: 1px solid rgba(66, 133, 244, 0.7);
       border-radius: 100px;
       padding: 8px 18px;
       display: flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(244, 168, 50, 0.4);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(66, 133, 244, 0.4);
       color: #fff;
       font-size: 0.82rem;
       font-weight: 600;
@@ -204,76 +212,126 @@
     .pin-icon {
       width: 28px;
       height: 28px;
-      background: var(--grad-gold);
+      background: linear-gradient(135deg, var(--gvr-google-blue), var(--gvr-google-red));
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.95rem;
-      color: #1a0800;
-      box-shadow: 0 0 12px rgba(244, 168, 50, 0.8);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(66, 133, 244, 0.8);
       animation: pulseGlow 2s infinite;
     }
 
     .spatial-pin:hover .pin-card {
       transform: scale(1.15);
-      background: rgba(244, 168, 50, 0.3);
+      background: rgba(66, 133, 244, 0.3);
       border-color: #fff;
-      box-shadow: 0 0 35px rgba(244, 168, 50, 0.7);
+      box-shadow: 0 0 35px rgba(66, 133, 244, 0.8);
     }
 
-    /* FLOATING HUD OVERLAY */
-    .hud-header {
+    /* GOOGLE CARDBOARD SPLIT-SCREEN STEREO OVERLAY */
+    .cardboard-overlay {
       position: absolute;
-      top: 24px;
+      inset: 0;
+      pointer-events: none;
+      z-index: 25;
+      display: none;
+    }
+
+    .cardboard-overlay.active {
+      display: flex;
+    }
+
+    .cardboard-divider {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #000;
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px #000;
+    }
+
+    .cardboard-hint {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      border: 1px solid var(--gvr-google-yellow);
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: var(--gvr-google-yellow);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* GOOGLE VR CONTROL CAPSULE BAR */
+    .gvr-control-bar {
+      position: absolute;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
-      background: var(--spatial-glass);
-      backdrop-filter: blur(30px) saturate(200%);
-      -webkit-backdrop-filter: blur(30px) saturate(200%);
-      border: 1px solid var(--spatial-border);
+      background: var(--gvr-glass);
+      backdrop-filter: blur(35px) saturate(200%);
+      -webkit-backdrop-filter: blur(35px) saturate(200%);
+      border: 1px solid var(--gvr-border);
       border-radius: 100px;
       padding: 10px 24px;
       display: flex;
       align-items: center;
-      gap: 16px;
-      box-shadow: var(--spatial-glow);
+      gap: 14px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
     }
 
-    .hud-title {
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--clr-heading);
-      letter-spacing: 0.05em;
+    .gvr-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--gvr-border);
+      color: #fff;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    .hud-tag {
-      background: rgba(244, 168, 50, 0.25);
-      border: 1px solid rgba(244, 168, 50, 0.5);
-      color: var(--clr-gold);
-      padding: 3px 12px;
-      border-radius: 100px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+    .gvr-btn:hover {
+      background: rgba(66, 133, 244, 0.35);
+      border-color: var(--gvr-google-blue);
+      transform: scale(1.15);
+      box-shadow: 0 0 25px rgba(66, 133, 244, 0.5);
     }
 
-    /* WALKING MOVEMENT CONTROLS (D-PAD) */
+    .gvr-btn.active {
+      background: linear-gradient(135deg, var(--gvr-google-blue), #1a73e8);
+      color: #fff;
+      border-color: #fff;
+      box-shadow: 0 0 30px rgba(66, 133, 244, 0.8);
+    }
+
+    .gvr-btn.cardboard-btn {
+      background: linear-gradient(135deg, var(--gvr-google-red), #d93025);
+    }
+
+    /* WALK CONTROLS D-PAD */
     .walk-controls-overlay {
       position: absolute;
       bottom: 24px;
       right: 24px;
       z-index: 30;
-      background: var(--spatial-glass);
+      background: var(--gvr-glass);
       backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid var(--spatial-border);
+      border: 1px solid var(--gvr-border);
       border-radius: 24px;
       padding: 16px;
-      box-shadow: var(--spatial-glow);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -285,7 +343,7 @@
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--clr-gold);
+      color: var(--gvr-google-blue);
       margin-bottom: 4px;
     }
 
@@ -293,7 +351,7 @@
       width: 48px;
       height: 44px;
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--spatial-border);
+      border: 1px solid var(--gvr-border);
       border-radius: 12px;
       color: #fff;
       font-size: 1.1rem;
@@ -305,62 +363,46 @@
     }
 
     .walk-btn:hover {
-      background: rgba(244, 168, 50, 0.3);
-      border-color: var(--clr-gold);
+      background: rgba(66, 133, 244, 0.3);
+      border-color: var(--gvr-google-blue);
       transform: scale(1.1);
     }
 
     .walk-row { display: flex; gap: 8px; }
 
-    /* BOTTOM CONTROL CAPSULE BAR */
-    .spatial-control-bar {
+    /* SCENE TABS */
+    .scene-tabs {
       position: absolute;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 90px;
+      left: 24px;
       z-index: 30;
-      background: var(--spatial-glass);
-      backdrop-filter: blur(35px) saturate(200%);
-      -webkit-backdrop-filter: blur(35px) saturate(200%);
-      border: 1px solid var(--spatial-border);
-      border-radius: 100px;
-      padding: 10px 24px;
       display: flex;
-      align-items: center;
-      gap: 14px;
-      box-shadow: var(--spatial-glow);
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .spatial-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--spatial-border);
-      color: #fff;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .scene-tab {
+      background: var(--gvr-glass);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--gvr-border);
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all 0.25s ease;
+      white-space: nowrap;
     }
 
-    .spatial-btn:hover {
-      background: rgba(244, 168, 50, 0.35);
-      border-color: var(--clr-gold);
-      transform: scale(1.15);
-      box-shadow: 0 0 25px rgba(244, 168, 50, 0.5);
+    .scene-tab.active, .scene-tab:hover {
+      background: rgba(66, 133, 244, 0.25);
+      border-color: var(--gvr-google-blue);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(66, 133, 244, 0.4);
     }
 
-    .spatial-btn.active {
-      background: var(--grad-gold);
-      color: #1a0800;
-      border-color: #fff;
-      box-shadow: 0 0 30px rgba(244, 168, 50, 0.7);
-    }
-
-    /* SPATIAL INFO MODAL */
+    /* MODAL */
     .spatial-modal {
       position: absolute;
       top: 50%;
@@ -368,12 +410,12 @@
       transform: translate(-50%, -50%) scale(0.85);
       width: 440px;
       max-width: 90%;
-      background: var(--spatial-glass);
+      background: var(--gvr-glass);
       backdrop-filter: blur(45px) saturate(220%);
       -webkit-backdrop-filter: blur(45px) saturate(220%);
-      border: 1px solid var(--spatial-border);
+      border: 1px solid var(--gvr-border);
       border-radius: 28px;
-      box-shadow: var(--spatial-glow), 0 35px 90px rgba(0, 0, 0, 0.85);
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.85);
       z-index: 100;
       opacity: 0;
       pointer-events: none;
@@ -387,72 +429,20 @@
       pointer-events: all;
     }
 
-    .spatial-modal-img {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-    }
-
+    .spatial-modal-img { width: 100%; height: 220px; object-fit: cover; }
     .spatial-modal-body { padding: 24px; }
-
-    .spatial-modal-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-
-    .spatial-modal-desc {
-      font-size: 0.9rem;
-      color: var(--clr-text-muted);
-      line-height: 1.65;
-      margin-bottom: 20px;
-    }
-
-    /* SCENE SELECTION TABS */
-    .scene-tabs {
-      position: absolute;
-      top: 90px;
-      left: 24px;
-      z-index: 30;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .scene-tab {
-      background: var(--spatial-glass);
-      backdrop-filter: blur(25px);
-      border: 1px solid var(--spatial-border);
-      border-radius: 12px;
-      padding: 10px 18px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--clr-text-muted);
-      cursor: pointer;
-      transition: all 0.25s ease;
-      white-space: nowrap;
-    }
-
-    .scene-tab.active, .scene-tab:hover {
-      background: rgba(244, 168, 50, 0.25);
-      border-color: var(--clr-gold);
-      color: var(--clr-gold);
-      box-shadow: 0 0 20px rgba(244, 168, 50, 0.3);
-    }
+    .spatial-modal-title { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .spatial-modal-desc { font-size: 0.9rem; color: var(--clr-text-muted); line-height: 1.65; margin-bottom: 20px; }
 
     @media (max-width: 768px) {
       .tour-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
       .tour-sidebar { height: 220px; }
-      .hud-header { width: 90%; justify-content: center; }
+      .gvr-hud-header { width: 90%; justify-content: center; }
       .walk-controls-overlay { bottom: 85px; right: 16px; transform: scale(0.85); transform-origin: bottom right; }
     }
   </style>
 </head>
 <body>
-
-  <!-- SPATIAL RETICLE (APPLE VISION PRO CURSOR) -->
-  <div class="spatial-reticle" id="spatial-reticle" aria-hidden="true"></div>
 
   <!-- NAVBAR -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
@@ -461,7 +451,7 @@
         <div class="nav-logo-icon">🏯</div>
         <div class="nav-logo-text">
           <span class="nav-logo-name">Monastery 360</span>
-          <span class="nav-logo-tagline">Real WebGL 360° VR</span>
+          <span class="nav-logo-tagline">Google VR System</span>
         </div>
       </a>
       <div class="nav-links">
@@ -477,13 +467,13 @@
     </div>
   </nav>
 
-  <!-- SPATIAL TOUR LAYOUT -->
+  <!-- GOOGLE VR TOUR LAYOUT -->
   <div class="tour-layout">
 
     <!-- SIDEBAR -->
     <aside class="tour-sidebar" aria-label="Monastery Selector">
       <div class="sidebar-header">
-        <h2>👓 Spatial VR Sanctuaries</h2>
+        <h2>🥽 Google VR Sanctuaries</h2>
         <div class="sidebar-search" style="margin-top:12px">
           <input type="text" id="monastery-search" placeholder="Search sanctuary..." aria-label="Search monasteries" />
         </div>
@@ -491,20 +481,30 @@
       <div class="monastery-list" id="monastery-list" role="listbox"></div>
     </aside>
 
-    <!-- 3D THREE.JS WEBGL CANVAS STAGE -->
-    <main class="tour-viewer" id="tour-viewer" aria-label="Real WebGL 360° VR Experience">
+    <!-- 3D GOOGLE VR CANVAS STAGE -->
+    <main class="tour-viewer" id="tour-viewer" aria-label="Google VR 360° Photo Sphere Experience">
 
       <!-- THREE.JS WEBGL CANVAS -->
       <canvas id="webgl-canvas"></canvas>
 
-      <!-- FLOATING HUD -->
-      <div class="hud-header">
-        <span class="hud-tag">🥽 360° Real VR</span>
-        <span class="hud-title" id="monastery-name">Rumtek Monastery</span>
-        <div class="sound-badge" style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--clr-gold)">
-          <span style="width:8px;height:8px;background:var(--clr-gold);border-radius:50%;animation:pulseGlow 1.5s infinite"></span>
-          <span id="spatial-sound-status">Spatial Audio Active</span>
+      <!-- GOOGLE CARDBOARD STEREO DUAL-VIEW OVERLAY -->
+      <div class="cardboard-overlay" id="cardboard-overlay">
+        <div class="cardboard-divider"></div>
+        <div class="cardboard-hint">🥽 Insert phone into Google Cardboard VR Headset</div>
+      </div>
+
+      <!-- GOOGLE VR FLOATING HUD -->
+      <div class="gvr-hud-header">
+        <div class="gvr-logo">
+          <div class="gvr-logo-dots">
+            <span class="gvr-dot blue"></span>
+            <span class="gvr-dot red"></span>
+            <span class="gvr-dot yellow"></span>
+            <span class="gvr-dot green"></span>
+          </div>
+          <span>Google VR System</span>
         </div>
+        <span class="hud-title" id="monastery-name">Rumtek Monastery</span>
       </div>
 
       <!-- 3D SPATIAL PROJECTED PINS CONTAINER -->
@@ -524,23 +524,24 @@
         </div>
       </div>
 
-      <!-- BOTTOM SPATIAL CONTROL BAR -->
-      <div class="spatial-control-bar" role="toolbar">
-        <button class="spatial-btn" id="ctrl-walk" title="Auto Walk Mode">🚶‍♂️</button>
-        <button class="spatial-btn" id="ctrl-audio" title="Toggle Spatial Audio">🔊</button>
+      <!-- GOOGLE VR BOTTOM CONTROL BAR -->
+      <div class="gvr-control-bar" role="toolbar">
+        <button class="gvr-btn cardboard-btn" id="ctrl-cardboard" title="Google Cardboard VR Mode (Stereoscopic 3D)">🥽</button>
+        <button class="gvr-btn" id="ctrl-gyro" title="Gyroscope / Device Motion Tracking">📱</button>
         <div class="tour-divider"></div>
-        <button class="spatial-btn" id="ctrl-zoom-in" title="Zoom In">🔍+</button>
-        <button class="spatial-btn" id="ctrl-zoom-out" title="Zoom Out">🔍−</button>
-        <button class="spatial-btn" id="ctrl-reset" title="Reset VR Camera">🔄</button>
+        <button class="gvr-btn" id="ctrl-walk" title="Auto Walk Mode">🚶‍♂️</button>
+        <button class="gvr-btn" id="ctrl-zoom-in" title="Zoom In">🔍+</button>
+        <button class="gvr-btn" id="ctrl-zoom-out" title="Zoom Out">🔍−</button>
+        <button class="gvr-btn" id="ctrl-reset" title="Reset Google VR Camera">🔄</button>
         <div class="tour-divider"></div>
-        <button class="spatial-btn" id="ctrl-fullscreen" title="Enter Immersive Fullscreen">⛶</button>
+        <button class="gvr-btn" id="ctrl-fullscreen" title="Enter Immersive Fullscreen">⛶</button>
       </div>
 
       <!-- SPATIAL GLASS MODAL -->
       <div class="spatial-modal" id="info-panel" role="dialog">
         <img src="" alt="" id="info-panel-img" class="spatial-modal-img" />
         <div class="spatial-modal-body">
-          <p class="card-label" id="info-panel-type" style="color:var(--clr-gold);font-size:0.75rem;text-transform:uppercase">Point of Interest</p>
+          <p class="card-label" id="info-panel-type" style="color:var(--gvr-google-blue);font-size:0.75rem;text-transform:uppercase">Google VR Spot</p>
           <h3 class="spatial-modal-title" id="info-panel-title">Location Title</h3>
           <p class="spatial-modal-desc" id="info-panel-desc">Description</p>
           <div style="display:flex; gap:12px; margin-top:16px;">
